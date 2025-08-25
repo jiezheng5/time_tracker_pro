@@ -1,4 +1,4 @@
-import { AppData } from '@/types';
+import { AppData, AppMode } from '@/types';
 import { Category } from '../models/Category';
 
 /**
@@ -74,10 +74,12 @@ export class LocalStorageService implements IStorageService {
     return {
       categories: Category.createDefaults().map(cat => cat.toJSON()),
       timeEntries: [],
+      plannedEntries: [],
       settings: {
         defaultView: 'weekly',
         theme: 'light',
         weekStartsOn: 1, // Monday
+        defaultMode: AppMode.TRACKING,
       },
       version: this.CURRENT_VERSION,
     };
@@ -95,6 +97,11 @@ export class LocalStorageService implements IStorageService {
         updatedAt: cat.updatedAt.toISOString(),
       })),
       timeEntries: data.timeEntries.map(entry => ({
+        ...entry,
+        createdAt: entry.createdAt.toISOString(),
+        updatedAt: entry.updatedAt.toISOString(),
+      })),
+      plannedEntries: data.plannedEntries.map(entry => ({
         ...entry,
         createdAt: entry.createdAt.toISOString(),
         updatedAt: entry.updatedAt.toISOString(),
@@ -118,6 +125,11 @@ export class LocalStorageService implements IStorageService {
         createdAt: new Date(entry.createdAt as string),
         updatedAt: new Date(entry.updatedAt as string),
       })) as AppData['timeEntries'],
+      plannedEntries: ((data.plannedEntries as Array<Record<string, unknown>>) || []).map((entry) => ({
+        ...entry,
+        createdAt: new Date(entry.createdAt as string),
+        updatedAt: new Date(entry.updatedAt as string),
+      })) as AppData['plannedEntries'],
     } as AppData;
   }
 

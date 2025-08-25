@@ -23,13 +23,28 @@ interface TimeSlotProps {
 }
 
 export function TimeSlot({ timeSlot, onClick, isToday = false }: TimeSlotProps) {
-  const { entry, category } = timeSlot;
-  const hasEntry = !!entry;
+  const { actualEntry, actualCategory } = timeSlot;
+  const hasEntry = !!actualEntry;
 
-  // Determine priority indicators
-  const showImportant = entry?.isImportant;
-  const showUrgent = entry?.isUrgent;
-  const showBoth = showImportant && showUrgent;
+  // Determine priority indicators and quadrant
+  const showImportant = actualEntry?.isImportant;
+  const showUrgent = actualEntry?.isUrgent;
+
+  // Get Eisenhower quadrant symbol and color
+  const getQuadrantInfo = () => {
+    if (showImportant && showUrgent) {
+      return { symbol: '🔥', bgColor: '#ef4444', label: 'Q1: Do First' };
+    } else if (showImportant && !showUrgent) {
+      return { symbol: '⭐', bgColor: '#10b981', label: 'Q2: Schedule' };
+    } else if (!showImportant && showUrgent) {
+      return { symbol: '⚡', bgColor: '#f59e0b', label: 'Q3: Delegate' };
+    } else if (!showImportant && !showUrgent && actualEntry) {
+      return { symbol: '💤', bgColor: '#6b7280', label: 'Q4: Eliminate' };
+    }
+    return null;
+  };
+
+  const quadrantInfo = getQuadrantInfo();
 
   return (
     <div
@@ -39,44 +54,37 @@ export function TimeSlot({ timeSlot, onClick, isToday = false }: TimeSlotProps) 
         isToday ? 'border-primary-200' : ''
       )}
       style={{
-        backgroundColor: hasEntry && category ? category.color : undefined,
-        color: hasEntry && category ? getContrastColor(category.color) : undefined,
+        backgroundColor: hasEntry && actualCategory ? actualCategory.color : undefined,
+        color: hasEntry && actualCategory ? getContrastColor(actualCategory.color) : undefined,
       }}
       onClick={onClick}
     >
       {/* Content */}
       <div className="p-2 h-full min-h-[60px] flex flex-col justify-between">
-        {hasEntry && category && (
+        {hasEntry && actualCategory && (
           <>
             {/* Category name */}
             <div className="text-xs font-medium truncate">
-              {category.name}
+              {actualCategory.name}
             </div>
 
             {/* Description if available */}
-            {entry.description && (
+            {actualEntry.description && (
               <div className="text-xs opacity-80 truncate mt-1">
-                {entry.description}
+                {actualEntry.description}
               </div>
             )}
           </>
         )}
 
-        {/* Priority indicators */}
-        {(showImportant || showUrgent) && (
-          <div className="absolute top-1 right-1 flex space-x-1">
-            {showBoth ? (
-              <div className="priority-indicator priority-both" title="Important & Urgent" />
-            ) : (
-              <>
-                {showImportant && (
-                  <div className="priority-indicator priority-important" title="Important" />
-                )}
-                {showUrgent && (
-                  <div className="priority-indicator priority-urgent" title="Urgent" />
-                )}
-              </>
-            )}
+        {/* Eisenhower Matrix Priority Indicator */}
+        {quadrantInfo && (
+          <div
+            className="absolute top-1 right-1 flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold shadow-sm"
+            style={{ backgroundColor: quadrantInfo.bgColor }}
+            title={quadrantInfo.label}
+          >
+            <span className="text-sm leading-none">{quadrantInfo.symbol}</span>
           </div>
         )}
 

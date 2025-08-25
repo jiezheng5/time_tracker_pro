@@ -28,6 +28,11 @@ yarn.lock
 /dist
 /build
 
+.next/
+.cache/
+Dockerfile
+.dockerignore
+
 # Environment variables
 .env
 .env.local

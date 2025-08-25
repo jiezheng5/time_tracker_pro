@@ -11,6 +11,8 @@ export function CategoryList() {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<string | null>(null);
 
+
+
   const handleEdit = (categoryId: string) => {
     setEditingCategory(categoryId);
   };

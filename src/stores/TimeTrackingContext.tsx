@@ -1,11 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { Category } from '@/lib/models/Category';
-import { TimeEntry } from '@/lib/models/TimeEntry';
 import { TimeTrackingRepository } from '@/lib/repositories/TimeTrackingRepository';
 import { LocalStorageService } from '@/lib/services/StorageService';
-import { CategoryFormData, TimeEntryFormData } from '@/types';
+import { Category, CategoryFormData, TimeEntry, TimeEntryFormData } from '@/types';
+import { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
 
 // State interface
 interface TimeTrackingState {
@@ -37,14 +35,14 @@ interface TimeTrackingContextType {
     createCategory: (formData: CategoryFormData) => Promise<void>;
     updateCategory: (id: string, updates: Partial<CategoryFormData>) => Promise<void>;
     deleteCategory: (id: string) => Promise<void>;
-    
+
     // Time entry actions
     upsertTimeEntry: (date: string, hour: number, formData: TimeEntryFormData) => Promise<void>;
     deleteTimeEntry: (date: string, hour: number) => Promise<void>;
-    
+
     // Navigation actions
     setCurrentWeek: (date: Date) => void;
-    
+
     // Utility actions
     clearAllData: () => Promise<void>;
     refreshData: () => Promise<void>;
@@ -65,22 +63,22 @@ function timeTrackingReducer(state: TimeTrackingState, action: TimeTrackingActio
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
-    
+
     case 'SET_ERROR':
       return { ...state, error: action.payload, isLoading: false };
-    
+
     case 'SET_CATEGORIES':
       return { ...state, categories: action.payload };
-    
+
     case 'SET_TIME_ENTRIES':
       return { ...state, timeEntries: action.payload };
-    
+
     case 'ADD_CATEGORY':
-      return { 
-        ...state, 
-        categories: [...state.categories, action.payload] 
+      return {
+        ...state,
+        categories: [...state.categories, action.payload]
       };
-    
+
     case 'UPDATE_CATEGORY':
       return {
         ...state,
@@ -88,18 +86,18 @@ function timeTrackingReducer(state: TimeTrackingState, action: TimeTrackingActio
           cat.id === action.payload.id ? action.payload : cat
         ),
       };
-    
+
     case 'DELETE_CATEGORY':
       return {
         ...state,
         categories: state.categories.filter(cat => cat.id !== action.payload),
       };
-    
+
     case 'UPSERT_TIME_ENTRY':
       const existingIndex = state.timeEntries.findIndex(
         entry => entry.date === action.payload.date && entry.hour === action.payload.hour
       );
-      
+
       if (existingIndex >= 0) {
         // Update existing
         return {
@@ -115,7 +113,7 @@ function timeTrackingReducer(state: TimeTrackingState, action: TimeTrackingActio
           timeEntries: [...state.timeEntries, action.payload],
         };
       }
-    
+
     case 'DELETE_TIME_ENTRY':
       return {
         ...state,
@@ -123,10 +121,10 @@ function timeTrackingReducer(state: TimeTrackingState, action: TimeTrackingActio
           entry => !(entry.date === action.payload.date && entry.hour === action.payload.hour)
         ),
       };
-    
+
     case 'SET_CURRENT_WEEK':
       return { ...state, currentWeek: action.payload };
-    
+
     default:
       return state;
   }
@@ -153,12 +151,15 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
         await repository.initialize();
-        
-        const [categories, timeEntries] = await Promise.all([
+
+        const [categoriesClasses, timeEntriesClasses] = await Promise.all([
           repository.getCategories(),
           repository.getTimeEntries(),
         ]);
-        
+
+        const categories = categoriesClasses.map(cat => cat.toJSON());
+        const timeEntries = timeEntriesClasses.map(entry => entry.toJSON());
+
         dispatch({ type: 'SET_CATEGORIES', payload: categories });
         dispatch({ type: 'SET_TIME_ENTRIES', payload: timeEntries });
         dispatch({ type: 'SET_ERROR', payload: null });
@@ -177,9 +178,11 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
   const actions: TimeTrackingContextType['actions'] = {
     createCategory: async (formData: CategoryFormData) => {
       try {
-        const category = await repository.createCategory(formData);
+        const categoryClass = await repository.createCategory(formData);
+        const category = categoryClass.toJSON();
         dispatch({ type: 'ADD_CATEGORY', payload: category });
       } catch (error) {
+
         const message = error instanceof Error ? error.message : 'Failed to create category';
         dispatch({ type: 'SET_ERROR', payload: message });
         throw error;
@@ -188,7 +191,8 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
 
     updateCategory: async (id: string, updates: Partial<CategoryFormData>) => {
       try {
-        const category = await repository.updateCategory(id, updates);
+        const categoryClass = await repository.updateCategory(id, updates);
+        const category = categoryClass.toJSON();
         dispatch({ type: 'UPDATE_CATEGORY', payload: category });
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to update category';
@@ -210,7 +214,8 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
 
     upsertTimeEntry: async (date: string, hour: number, formData: TimeEntryFormData) => {
       try {
-        const timeEntry = await repository.upsertTimeEntry(date, hour, formData);
+        const timeEntryClass = await repository.upsertTimeEntry(date, hour, formData);
+        const timeEntry = timeEntryClass.toJSON();
         dispatch({ type: 'UPSERT_TIME_ENTRY', payload: timeEntry });
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to save time entry';
@@ -239,9 +244,10 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
         await repository.clearAllData();
         dispatch({ type: 'SET_CATEGORIES', payload: [] });
         dispatch({ type: 'SET_TIME_ENTRIES', payload: [] });
-        
+
         // Reload default data
-        const categories = await repository.getCategories();
+        const categoriesClasses = await repository.getCategories();
+        const categories = categoriesClasses.map(cat => cat.toJSON());
         dispatch({ type: 'SET_CATEGORIES', payload: categories });
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to clear data';
@@ -253,12 +259,15 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
     refreshData: async () => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
-        
-        const [categories, timeEntries] = await Promise.all([
+
+        const [categoriesClasses, timeEntriesClasses] = await Promise.all([
           repository.getCategories(),
           repository.getTimeEntries(),
         ]);
-        
+
+        const categories = categoriesClasses.map(cat => cat.toJSON());
+        const timeEntries = timeEntriesClasses.map(entry => entry.toJSON());
+
         dispatch({ type: 'SET_CATEGORIES', payload: categories });
         dispatch({ type: 'SET_TIME_ENTRIES', payload: timeEntries });
         dispatch({ type: 'SET_ERROR', payload: null });

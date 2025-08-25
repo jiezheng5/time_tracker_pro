@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
 import { useTimeTracking } from '@/stores/TimeTrackingContext';
 import { CATEGORY_COLORS } from '@/types';
-import { Button } from '@/components/ui/Button';
+import { useState } from 'react';
 
 interface CategoryFormProps {
   onSuccess: () => void;
@@ -28,7 +28,9 @@ export function CategoryForm({ onSuccess, onCancel, initialData }: CategoryFormP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+
+
     if (!formData.name.trim()) {
       setError('Category name is required');
       return;
@@ -38,13 +40,24 @@ export function CategoryForm({ onSuccess, onCancel, initialData }: CategoryFormP
     setError(null);
 
     try {
+
       if (isEditing) {
         await actions.updateCategory(initialData.id, formData);
       } else {
         await actions.createCategory(formData);
       }
+
+
+      // Reset form data
+      setFormData({
+        name: '',
+        color: '#3B82F6',
+      });
+
+      // Call success callback
       onSuccess();
     } catch (err) {
+
       setError(err instanceof Error ? err.message : 'Failed to save category');
     } finally {
       setIsSubmitting(false);
@@ -87,11 +100,10 @@ export function CategoryForm({ onSuccess, onCancel, initialData }: CategoryFormP
               key={color}
               type="button"
               onClick={() => setFormData({ ...formData, color })}
-              className={`w-8 h-8 rounded-lg border-2 transition-all ${
-                formData.color === color
-                  ? 'border-gray-900 scale-110'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
+              className={`w-8 h-8 rounded-lg border-2 transition-all ${formData.color === color
+                ? 'border-gray-900 scale-110'
+                : 'border-gray-300 hover:border-gray-400'
+                }`}
               style={{ backgroundColor: color }}
               title={color}
             />

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronDown, Plus } from 'lucide-react';
-import { Category } from '@/lib/models/Category';
 import { CategoryForm } from '@/components/forms/CategoryForm';
+import { Category } from '@/types';
+import { ChevronDown, Plus } from 'lucide-react';
+import { useState } from 'react';
 
 interface CategorySelectorProps {
   value: string;
@@ -66,9 +66,8 @@ export function CategorySelector({ value, onChange, categories }: CategorySelect
                 key={category.id}
                 type="button"
                 onClick={() => handleCategorySelect(category.id)}
-                className={`w-full flex items-center px-3 py-2 text-left hover:bg-gray-50 transition-colors ${
-                  value === category.id ? 'bg-primary-50 text-primary-700' : 'text-gray-900'
-                }`}
+                className={`w-full flex items-center px-3 py-2 text-left hover:bg-gray-50 transition-colors ${value === category.id ? 'bg-primary-50 text-primary-700' : 'text-gray-900'
+                  }`}
               >
                 <div
                   className="category-color-dot"

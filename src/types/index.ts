@@ -20,6 +20,18 @@ export interface TimeEntry {
   updatedAt: Date;
 }
 
+export interface PlannedEntry {
+  id: string;
+  date: string; // YYYY-MM-DD format
+  hour: number; // 9-22 (9am-11pm)
+  categoryId: string;
+  isImportant: boolean;
+  isUrgent: boolean;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Eisenhower Matrix Quadrants
 export enum EisenhowerQuadrant {
   IMPORTANT_URGENT = 'Q1',        // Do First
@@ -37,10 +49,20 @@ export interface QuadrantData {
   color: string;
 }
 
+// Execution status for plan vs actual comparison
+export enum ExecutionStatus {
+  PLANNED = 'planned',           // Only planned, not executed
+  EXECUTED = 'executed',         // Only executed, not planned
+  COMPLETED = 'completed',       // Planned and executed (matches)
+  MISSED = 'missed',            // Planned but not executed
+  UNPLANNED = 'unplanned'       // Executed but not planned
+}
+
 // Application state interfaces
 export interface AppData {
   categories: Category[];
   timeEntries: TimeEntry[];
+  plannedEntries: PlannedEntry[];
   settings: AppSettings;
   version: string;
 }
@@ -49,14 +71,25 @@ export interface AppSettings {
   defaultView: 'daily' | 'weekly';
   theme: 'light' | 'dark';
   weekStartsOn: 0 | 1; // 0 = Sunday, 1 = Monday
+  defaultMode: AppMode;
+}
+
+// App modes for planning vs tracking
+export enum AppMode {
+  PLANNING = 'planning',
+  TRACKING = 'tracking',
+  COMPARISON = 'comparison'
 }
 
 // UI-specific types
 export interface TimeSlotData {
   date: string;
   hour: number;
-  entry?: TimeEntry;
-  category?: Category;
+  plannedEntry?: PlannedEntry;
+  actualEntry?: TimeEntry;
+  plannedCategory?: Category;
+  actualCategory?: Category;
+  executionStatus: ExecutionStatus;
 }
 
 export interface WeekData {
@@ -91,6 +124,13 @@ export interface WeeklyStats {
 
 // Form types
 export interface TimeEntryFormData {
+  categoryId: string;
+  isImportant: boolean;
+  isUrgent: boolean;
+  description?: string;
+}
+
+export interface PlannedEntryFormData {
   categoryId: string;
   isImportant: boolean;
   isUrgent: boolean;

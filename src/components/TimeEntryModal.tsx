@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Trash2 } from 'lucide-react';
-import { useTimeTracking } from '@/stores/TimeTrackingContext';
-import { formatHour } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
 import { CategorySelector } from '@/components/CategorySelector';
+import { Button } from '@/components/ui/Button';
+import { formatHour } from '@/lib/utils';
+import { useTimeTracking } from '@/stores/TimeTrackingContext';
+import { Trash2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface TimeEntryModalProps {
   date: string;
@@ -49,7 +49,7 @@ export function TimeEntryModal({ date, hour, onClose }: TimeEntryModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.categoryId) {
       setError('Please select a category');
       return;
@@ -70,7 +70,7 @@ export function TimeEntryModal({ date, hour, onClose }: TimeEntryModalProps) {
 
   const handleDelete = async () => {
     if (!existingEntry) return;
-    
+
     setIsSubmitting(true);
     try {
       await actions.deleteTimeEntry(date, hour);
@@ -151,14 +151,19 @@ export function TimeEntryModal({ date, hour, onClose }: TimeEntryModalProps) {
                 <span className="ml-2 text-sm text-gray-700">Urgent</span>
               </label>
             </div>
-            
+
             {/* Quadrant indicator */}
-            <div className="mt-2 text-xs text-gray-500">
+            <div className="mt-2 text-xs text-gray-500 flex items-center">
+              <span className="mr-1">
+                {formData.isImportant && formData.isUrgent ? '🔥' :
+                  formData.isImportant && !formData.isUrgent ? '⭐' :
+                    !formData.isImportant && formData.isUrgent ? '⚡' : '💤'}
+              </span>
               Quadrant: {
                 formData.isImportant && formData.isUrgent ? 'Q1 (Do First)' :
-                formData.isImportant && !formData.isUrgent ? 'Q2 (Schedule)' :
-                !formData.isImportant && formData.isUrgent ? 'Q3 (Delegate)' :
-                'Q4 (Eliminate)'
+                  formData.isImportant && !formData.isUrgent ? 'Q2 (Schedule)' :
+                    !formData.isImportant && formData.isUrgent ? 'Q3 (Delegate)' :
+                      'Q4 (Eliminate)'
               }
             </div>
           </div>
@@ -198,7 +203,7 @@ export function TimeEntryModal({ date, hour, onClose }: TimeEntryModalProps) {
             >
               {existingEntry ? 'Update' : 'Save'} Entry
             </Button>
-            
+
             {existingEntry && (
               <Button
                 type="button"
@@ -210,7 +215,7 @@ export function TimeEntryModal({ date, hour, onClose }: TimeEntryModalProps) {
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
-            
+
             <Button
               type="button"
               variant="secondary"

@@ -1,4 +1,5 @@
 import type { Category, TimeEntry } from '@/types';
+import { ExecutionStatus } from '@/types';
 import { clsx, type ClassValue } from 'clsx';
 import { addWeeks, eachDayOfInterval, endOfWeek, format, startOfWeek, subWeeks } from 'date-fns';
 
@@ -190,14 +191,21 @@ export function createWeekTimeSlots(weekDays: Date[], timeEntries: TimeEntry[], 
     const timeSlots = [];
 
     for (let hour = WORK_HOURS.START; hour <= WORK_HOURS.END; hour++) {
-      const entry = timeEntries.find(e => e.date === dateString && e.hour === hour);
-      const category = entry ? categories.find(c => c.id === entry.categoryId) : undefined;
+      const actualEntry = timeEntries.find(e => e.date === dateString && e.hour === hour);
+      const actualCategory = actualEntry ? categories.find(c => c.id === actualEntry.categoryId) : undefined;
+
+      // For now, we only have actual entries (no planning layer yet)
+      const executionStatus = actualEntry ? ExecutionStatus.EXECUTED : ExecutionStatus.PLANNED;
 
       timeSlots.push({
         date: dateString,
         hour,
-        entry,
-        category,
+        actualEntry,
+        actualCategory,
+        executionStatus,
+        // Legacy support for existing components
+        entry: actualEntry,
+        category: actualCategory,
       });
     }
 

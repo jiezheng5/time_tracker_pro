@@ -1,5 +1,6 @@
 'use client';
 
+import { useSidebar } from '@/contexts/SidebarContext';
 import { calculatePercentage, formatDateString, getWeekDays } from '@/lib/utils';
 import { useTimeTracking } from '@/stores/TimeTrackingContext';
 import { EisenhowerQuadrant, WEEK_HOURS } from '@/types';
@@ -14,7 +15,12 @@ import { useResizablePanel } from './ui/ResizablePanel';
 
 export function QuickStats() {
   const { state, actions } = useTimeTracking();
-  const panelWidth = useResizablePanel('sidebar-width', 320);
+  const { activeTab } = useSidebar();
+
+  // Use contextual storage key based on active tab
+  const storageKey = activeTab === 'stats' ? 'stats-panel-width' : 'sidebar-width';
+  const defaultWidth = activeTab === 'stats' ? 450 : 320;
+  const panelWidth = useResizablePanel(storageKey, defaultWidth);
 
   // Get current week entries for charts with filtering
   const currentWeekEntries = useMemo(() => {

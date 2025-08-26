@@ -6,9 +6,11 @@ import { TimeGrid } from '@/components/TimeGrid';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ResizablePanel } from '@/components/ui/ResizablePanel';
+import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import { useTimeTracking } from '@/stores/TimeTrackingContext';
 
-export default function HomePage() {
+function MainLayout() {
+  const { activeTab } = useSidebar();
   const { state } = useTimeTracking();
 
   if (state.isLoading) {
@@ -32,21 +34,52 @@ export default function HomePage() {
       <Header />
 
       <div className="flex h-[calc(100vh-73px)]">
-        <ResizablePanel
-          defaultWidth={320}
-          minWidth={250}
-          maxWidth={600}
-          storageKey="sidebar-width"
-        >
-          <Sidebar />
-        </ResizablePanel>
-
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="max-w-7xl mx-auto">
-            <TimeGrid />
-          </div>
-        </main>
+        {activeTab === 'stats' ? (
+          // Stats Layout: Resizable stats panel
+          <>
+            <ResizablePanel
+              defaultWidth={450}
+              minWidth={350}
+              maxWidth={800}
+              storageKey="stats-panel-width"
+            >
+              <div className="h-full bg-white">
+                <Sidebar />
+              </div>
+            </ResizablePanel>
+            <main className="flex-1 p-6 overflow-auto">
+              <div className="max-w-7xl mx-auto">
+                <TimeGrid />
+              </div>
+            </main>
+          </>
+        ) : (
+          // Categories Layout: Standard sidebar
+          <>
+            <ResizablePanel
+              defaultWidth={320}
+              minWidth={250}
+              maxWidth={500}
+              storageKey="sidebar-width"
+            >
+              <Sidebar />
+            </ResizablePanel>
+            <main className="flex-1 p-6 overflow-auto">
+              <div className="max-w-7xl mx-auto">
+                <TimeGrid />
+              </div>
+            </main>
+          </>
+        )}
       </div>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <SidebarProvider>
+      <MainLayout />
+    </SidebarProvider>
   );
 }

@@ -4,6 +4,7 @@ import { CategoryList } from '@/components/CategoryList';
 import { CategoryForm } from '@/components/forms/CategoryForm';
 import { QuickStats } from '@/components/QuickStats';
 import { Button } from '@/components/ui/Button';
+import { useSidebar } from '@/contexts/SidebarContext';
 import { addSampleDataIfEmpty, isDataEmpty } from '@/lib/utils/sampleData';
 import { useTimeTracking } from '@/stores/TimeTrackingContext';
 import { BarChart3, Database, Plus, Tag } from 'lucide-react';
@@ -11,8 +12,8 @@ import { useState } from 'react';
 
 export function Sidebar() {
   const { state, actions } = useTimeTracking();
+  const { activeTab, setActiveTab } = useSidebar();
   const [showCategoryForm, setShowCategoryForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<'categories' | 'stats'>('categories');
   const [isLoadingSample, setIsLoadingSample] = useState(false);
 
   const handleLoadSampleData = async () => {

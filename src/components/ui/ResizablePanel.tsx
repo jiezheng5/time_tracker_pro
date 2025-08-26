@@ -53,6 +53,11 @@ export function ResizablePanel({
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
+    console.log('🎯 ResizablePanel: Mouse down triggered!', {
+      clientX: e.clientX,
+      currentWidth: width,
+      storageKey
+    });
     setIsResizing(true);
     setIsDragging(true);
     startXRef.current = e.clientX;
@@ -66,7 +71,7 @@ export function ResizablePanel({
 
     // Add a class to prevent text selection during resize
     document.body.classList.add('resize-active');
-  }, [width]);
+  }, [width, storageKey]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing) return;
@@ -77,6 +82,13 @@ export function ResizablePanel({
 
     // Constrain width within bounds
     const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+    console.log('🔄 ResizablePanel: Resizing', {
+      deltaX,
+      newWidth,
+      constrainedWidth,
+      minWidth,
+      maxWidth
+    });
     setWidth(constrainedWidth);
   }, [isResizing, minWidth, maxWidth]);
 
@@ -129,10 +141,10 @@ export function ResizablePanel({
           aria-valuemin={minWidth}
           aria-valuemax={maxWidth}
           className={cn(
-            'absolute top-0 right-0 w-2 h-full cursor-col-resize group transition-colors z-10',
+            'absolute top-0 right-0 w-4 h-full cursor-col-resize group transition-colors z-20',
             'after:content-[""] after:absolute after:top-0 after:left-1/2 after:w-px after:h-full',
-            'after:bg-gray-200 after:transition-opacity after:duration-200',
-            isResizing ? 'after:opacity-100' : 'after:opacity-0 hover:after:opacity-50'
+            'after:bg-gray-300 after:transition-opacity after:duration-200',
+            isResizing ? 'after:opacity-100' : 'after:opacity-60 hover:after:opacity-100'
           )}
           onMouseDown={handleMouseDown}
         >
@@ -146,10 +158,10 @@ export function ResizablePanel({
           >
             <div
               className={cn(
-                'flex items-center justify-center w-6 h-14 bg-white border border-gray-200 rounded-md',
-                'shadow-sm hover:shadow-md transition-all duration-200',
-                'opacity-60 group-hover:opacity-100',
-                isDragging && 'opacity-100 shadow-lg border-primary-500'
+                'flex items-center justify-center w-6 h-16 bg-white border border-gray-300 rounded-md',
+                'shadow-md hover:shadow-lg transition-all duration-200',
+                'opacity-80 group-hover:opacity-100',
+                isDragging && 'opacity-100 shadow-xl border-blue-500 bg-blue-50'
               )}
             >
               <GripVertical

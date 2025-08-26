@@ -33,7 +33,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-full h-full bg-white">
+    <aside className="w-full h-full bg-white overflow-y-auto custom-scrollbar">
       <div className="p-6">
         {/* Tab Navigation */}
         <div className="flex space-x-1 mb-6">

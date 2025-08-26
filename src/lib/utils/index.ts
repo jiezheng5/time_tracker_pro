@@ -1,7 +1,25 @@
 import type { Category, PlannedEntry, TimeEntry } from '@/types';
 import { ExecutionStatus } from '@/types';
 import { clsx, type ClassValue } from 'clsx';
-import { addWeeks, eachDayOfInterval, endOfWeek, format, startOfWeek, subWeeks } from 'date-fns';
+import { addWeeks, eachDayOfInterval, endOfWeek, startOfWeek, subWeeks } from 'date-fns';
+import { format as formatTz, toZonedTime } from 'date-fns-tz';
+
+// Pacific Time timezone
+const PACIFIC_TIMEZONE = 'America/Los_Angeles';
+
+/**
+ * Get current date in Pacific Time
+ */
+export function getCurrentPacificDate(): Date {
+  return toZonedTime(new Date(), PACIFIC_TIMEZONE);
+}
+
+/**
+ * Convert a date to Pacific Time
+ */
+export function toPacificTime(date: Date): Date {
+  return toZonedTime(date, PACIFIC_TIMEZONE);
+}
 
 /**
  * Utility function to combine class names
@@ -29,10 +47,10 @@ export function isValidDate(dateString: string): boolean {
 }
 
 /**
- * Format a date to YYYY-MM-DD string
+ * Format a date to YYYY-MM-DD string, respecting the Pacific timezone
  */
 export function formatDateString(date: Date): string {
-  return format(date, 'yyyy-MM-dd');
+  return formatTz(date, 'yyyy-MM-dd', { timeZone: PACIFIC_TIMEZONE });
 }
 
 /**
@@ -67,23 +85,24 @@ export function getPreviousWeek(date: Date): Date {
 }
 
 /**
- * Get current week string for display
+ * Get current week string for display, respecting the Pacific timezone
  */
 export function getWeekString(date: Date, weekStartsOn: 0 | 1 = 1): string {
   const { start, end } = getWeekBounds(date, weekStartsOn);
+  const formatOptions = { timeZone: PACIFIC_TIMEZONE };
 
-  if (start.getMonth() === end.getMonth()) {
-    return `${format(start, 'MMM d')} - ${format(end, 'd, yyyy')}`;
+  if (formatTz(start, 'M', formatOptions) === formatTz(end, 'M', formatOptions)) {
+    return `${formatTz(start, 'MMM d', formatOptions)} - ${formatTz(end, 'd, yyyy', formatOptions)}`;
   } else {
-    return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+    return `${formatTz(start, 'MMM d', formatOptions)} - ${formatTz(end, 'MMM d, yyyy', formatOptions)}`;
   }
 }
 
 /**
- * Check if a date is today
+ * Check if a date is today (in Pacific Time)
  */
 export function isToday(date: Date): boolean {
-  const today = new Date();
+  const today = getCurrentPacificDate();
   return formatDateString(date) === formatDateString(today);
 }
 
@@ -107,17 +126,17 @@ export function formatHour(hour: number): string {
 }
 
 /**
- * Get day name from date
+ * Get day name from date, respecting the Pacific timezone
  */
 export function getDayName(date: Date): string {
-  return format(date, 'EEEE');
+  return formatTz(date, 'EEEE', { timeZone: PACIFIC_TIMEZONE });
 }
 
 /**
- * Get short day name from date
+ * Get short day name from date, respecting the Pacific timezone
  */
 export function getShortDayName(date: Date): string {
-  return format(date, 'EEE');
+  return formatTz(date, 'EEE', { timeZone: PACIFIC_TIMEZONE });
 }
 
 /**

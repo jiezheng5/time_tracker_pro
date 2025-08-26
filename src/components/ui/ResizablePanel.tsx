@@ -25,7 +25,6 @@ export function ResizablePanel({
 }: ResizablePanelProps) {
   const [width, setWidth] = useState(defaultWidth);
   const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
@@ -53,68 +52,42 @@ export function ResizablePanel({
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    console.log('🎯 ResizablePanel: Mouse down triggered!', {
-      clientX: e.clientX,
-      currentWidth: width,
-      storageKey
-    });
-    setIsResizing(true);
-    setIsDragging(true);
     startXRef.current = e.clientX;
     startWidthRef.current = width;
-
-    // Add global event listeners
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    setIsDragging(true);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
-
-    // Add a class to prevent text selection during resize
     document.body.classList.add('resize-active');
-  }, [width, storageKey]);
+  }, [width]);
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isResizing) return;
-    e.preventDefault();
-
-    const deltaX = e.clientX - startXRef.current;
-    const newWidth = startWidthRef.current + deltaX;
-
-    // Constrain width within bounds
-    const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-    console.log('🔄 ResizablePanel: Resizing', {
-      deltaX,
-      newWidth,
-      constrainedWidth,
-      minWidth,
-      maxWidth
-    });
-    setWidth(constrainedWidth);
-  }, [isResizing, minWidth, maxWidth]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsResizing(false);
-    setIsDragging(false);
-
-    // Remove global event listeners
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-
-    // Remove the resize-active class
-    document.body.classList.remove('resize-active');
-  }, [handleMouseMove]);
-
-  // Cleanup event listeners on unmount
   useEffect(() => {
+    if (!isDragging) {
+      return;
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
+      const deltaX = e.clientX - startXRef.current;
+      const newWidth = startWidthRef.current + deltaX;
+      const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+      setWidth(constrainedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.body.classList.remove('resize-active');
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [isDragging, minWidth, maxWidth]);
 
   return (
     <div className="flex h-full">
@@ -123,7 +96,7 @@ export function ResizablePanel({
         ref={panelRef}
         className={cn(
           'relative bg-white border-r border-gray-200 h-full overflow-hidden',
-          !isResizing && 'transition-all duration-300 ease-in-out',
+          !isDragging && 'transition-all duration-300 ease-in-out',
           className
         )}
         style={{ width: `${width}px` }}
@@ -144,7 +117,7 @@ export function ResizablePanel({
             'absolute top-0 right-0 w-4 h-full cursor-col-resize group transition-colors z-20',
             'after:content-[""] after:absolute after:top-0 after:left-1/2 after:w-px after:h-full',
             'after:bg-gray-300 after:transition-opacity after:duration-200',
-            isResizing ? 'after:opacity-100' : 'after:opacity-60 hover:after:opacity-100'
+            isDragging ? 'after:opacity-100' : 'after:opacity-60 hover:after:opacity-100'
           )}
           onMouseDown={handleMouseDown}
         >

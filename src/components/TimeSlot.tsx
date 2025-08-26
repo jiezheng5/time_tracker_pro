@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { TimeSlotData } from '@/types';
+import { X } from 'lucide-react';
 
 // Utility function to get contrast color for text
 function getContrastColor(backgroundColor: string): string {
@@ -20,6 +21,7 @@ interface TimeSlotProps {
   timeSlot: TimeSlotData;
   onClick: () => void;
   onPlanClick?: () => void;
+  onClearCell?: () => void;
   isToday?: boolean;
   showPlanSection?: boolean; // Toggle for showing plan vs execute sections
 }
@@ -28,6 +30,7 @@ export function TimeSlot({
   timeSlot,
   onClick,
   onPlanClick,
+  onClearCell,
   isToday = false,
   showPlanSection = true
 }: TimeSlotProps) {
@@ -104,6 +107,19 @@ export function TimeSlot({
             <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-gray-100 bg-opacity-50">
               <span className="text-xs text-gray-600 font-medium">+ Add</span>
             </div>
+          )}
+          {/* Clear button for filled cells */}
+          {hasActualEntry && onClearCell && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClearCell();
+              }}
+              className="absolute top-1 left-1 opacity-0 hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-sm"
+              title="Clear this time slot"
+            >
+              <X className="h-3 w-3" />
+            </button>
           )}
         </div>
       </div>
@@ -220,6 +236,20 @@ export function TimeSlot({
           {executionStatus === 'missed' && <div className="w-full h-full bg-red-500 rounded-full" title="Planned activity missed" />}
           {executionStatus === 'unplanned' && <div className="w-full h-full bg-blue-500 rounded-full" title="Unplanned activity" />}
         </div>
+      )}
+
+      {/* Clear button for cells with any content */}
+      {(hasPlannedEntry || hasActualEntry) && onClearCell && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClearCell();
+          }}
+          className="absolute top-1 left-1 opacity-0 hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-sm z-10"
+          title="Clear this time slot"
+        >
+          <X className="h-3 w-3" />
+        </button>
       )}
     </div>
   );

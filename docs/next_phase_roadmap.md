@@ -165,38 +165,52 @@ export function Sidebar() {
    - ✅ Resize functionality verified in browser
    - ✅ Storage key logic working correctly for both tabs
 
-## 🎯 Next Phase: UI Polish & Minor Improvements
+## [need work] Phase 5: UI Polish & Minor Improvements - priority 1, 2, 3 COMPLETED but issues remained:
+- left sidebar width no longer adjustable
+- 'Hide All' Categories button not working
+- date is 1 day ahead in charts, i.e., should use local timezone
 
-### Priority 1: Clean Up Weekly Time Grid back to Original State, i.e., all hourly cell should show plan/track instead of user-filled content when user clicks a button
+### ✅ Priority 1: Weekly Time Grid Reset Functionality - COMPLETED
+**Goal**: Clean Up Weekly Time Grid back to Original State, i.e., all hourly cell should show plan/track instead of user-filled content when user clicks a button
+**Status**: ✅ **COMPLETED** - Users can clear data at both week-level and individual cell-level granularity
 
-### Priority 2: User should be able to use default categories instead of creating new ones with one click
+#### ✅ Implementation Delivered:
+- **Clear Week Button**: Added to main header with confirmation dialog
+- **Clear Cell Button**: Added to individual time slots (appears on hover)
+- **Safety Features**: Confirmation dialogs prevent accidental data loss
+- **Granular Control**: Users can clear entire week or specific cells
+
+### ✅ Priority 2: Default Categories One-Click Loading - COMPLETED
+**Goal**: User should be able to use default categories instead of creating new ones with one click
+**Status**: ✅ **COMPLETED** - One-click loading of 8 predefined default categories
 - Default categories: defined in src/lib/models/Category.ts
+- Replaces ALL existing categories with confirmation dialog
 
-### Priority 3: Chart Filters Layout Improvement
+### ✅ Priority 3: Chart Filters Layout Improvement - COMPLETED
 **Goal**: Improve Chart Filters panel layout for better UX
-**Status**: 🚧 **NEXT PRIORITY**
+**Status**: ✅ **COMPLETED** - Changed from horizontal to vertical stacked layout
 
-#### Specific Improvements Needed:
-1. **Date Range Filter Position**: Move above Category Visibility instead of left side
-2. **Visual Hierarchy**: Better spacing and alignment in filter panels
-3. **Filter Panel Layout**: Optimize for the new adjustable panel widths
+#### ✅ Improvements Delivered:
+1. **Date Range Filter Position**: ✅ Moved above Category Visibility for better hierarchy
+2. **Visual Hierarchy**: ✅ Improved spacing and alignment in filter panels
+3. **Filter Panel Layout**: ✅ Optimized for the new adjustable panel widths
 
-#### Implementation Plan:
+#### ✅ Implementation Completed:
 ```typescript
-// CURRENT: Horizontal layout (side-by-side)
-<div className="flex space-x-4">
+// BEFORE: Horizontal layout (side-by-side)
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
   <DateRangePicker />
   <CategoryFilterPanel />
 </div>
 
-// IMPROVED: Vertical layout (stacked)
+// AFTER: Vertical layout (stacked)
 <div className="space-y-4">
   <DateRangePicker />
   <CategoryFilterPanel />
 </div>
 ```
 
-#### Expected Benefits:
+#### ✅ Benefits Achieved:
 - Better use of vertical space in adjustable panel
 - Clearer visual hierarchy
 - More intuitive filter flow (date first, then categories)

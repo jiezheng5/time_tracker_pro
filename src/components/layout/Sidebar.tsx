@@ -15,6 +15,7 @@ export function Sidebar() {
   const { activeTab, setActiveTab } = useSidebar();
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [isLoadingSample, setIsLoadingSample] = useState(false);
+  const [isLoadingDefaults, setIsLoadingDefaults] = useState(false);
 
   const handleLoadSampleData = async () => {
     setIsLoadingSample(true);
@@ -29,6 +30,21 @@ export function Sidebar() {
       console.error('Failed to load sample data:', error);
     } finally {
       setIsLoadingSample(false);
+    }
+  };
+
+  const handleLoadDefaultCategories = async () => {
+    if (!confirm('This will replace ALL existing categories with 8 predefined default categories. This action cannot be undone. Continue?')) {
+      return;
+    }
+
+    setIsLoadingDefaults(true);
+    try {
+      await actions.loadDefaultCategories();
+    } catch (error) {
+      console.error('Failed to load default categories:', error);
+    } finally {
+      setIsLoadingDefaults(false);
     }
   };
 
@@ -62,8 +78,8 @@ export function Sidebar() {
         {/* Tab Content */}
         {activeTab === 'categories' && (
           <div className="space-y-6">
-            {/* Add Category Button */}
-            <div>
+            {/* Category Actions */}
+            <div className="space-y-2">
               <Button
                 onClick={() => setShowCategoryForm(true)}
                 className="w-full"
@@ -73,7 +89,19 @@ export function Sidebar() {
                 Add Category
               </Button>
 
-
+              <Button
+                onClick={handleLoadDefaultCategories}
+                variant="secondary"
+                size="sm"
+                isLoading={isLoadingDefaults}
+                className="w-full"
+              >
+                <Database className="h-4 w-4 mr-2" />
+                {isLoadingDefaults ? 'Loading...' : 'Load Default Categories'}
+              </Button>
+              <p className="text-xs text-gray-500 text-center">
+                Replaces all categories with 8 predefined ones
+              </p>
             </div>
 
             {/* Category Form */}

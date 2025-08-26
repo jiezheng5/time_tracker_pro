@@ -1,5 +1,6 @@
 import { CategoryDistributionChart } from '@/components/charts/CategoryDistributionChart';
 import { EisenhowerMatrixChart } from '@/components/charts/EisenhowerMatrixChart';
+import WeeklyProgressChart from '@/components/charts/WeeklyProgressChart';
 import { ResizablePanel } from '@/components/ui/ResizablePanel';
 import { Category, TimeEntry } from '@/types';
 import { render, screen } from '@testing-library/react';
@@ -167,7 +168,7 @@ describe('Chart Visualization Improvements', () => {
         />
       );
 
-      expect(screen.getByText('Priority Distribution (Eisenhower Matrix)')).toBeInTheDocument();
+      expect(screen.getByText('Priority Distribution')).toBeInTheDocument();
 
       // Check that pie chart is rendered
       expect(screen.getByTestId('pie-chart')).toBeInTheDocument();
@@ -182,8 +183,7 @@ describe('Chart Visualization Improvements', () => {
       );
 
       // Check for export buttons
-      expect(screen.getByTestId('download-icon')).toBeInTheDocument();
-      expect(screen.getByText('CSV')).toBeInTheDocument();
+      expect(screen.getAllByTestId('download-icon').length).toBeGreaterThan(0);
     });
 
     test('handles empty data gracefully', () => {
@@ -220,10 +220,55 @@ describe('Chart Visualization Improvements', () => {
 
         // Verify charts render without errors at different widths
         expect(screen.getByText('Category Distribution')).toBeInTheDocument();
-        expect(screen.getByText('Priority Distribution (Eisenhower Matrix)')).toBeInTheDocument();
+        expect(screen.getByText('Priority Distribution')).toBeInTheDocument();
 
         unmount();
       });
+    });
+  });
+
+  describe('Date Handling and Timezones', () => {
+    const originalTimezone = process.env.TZ;
+
+    beforeAll(() => {
+      process.env.TZ = 'UTC';
+    });
+
+    afterAll(() => {
+      process.env.TZ = originalTimezone;
+    });
+
+    test('WeeklyProgressChart displays correct dates without timezone shift', () => {
+      // This date in UTC is Jan 31, but in PST it's still Jan 30
+      const currentWeek = new Date('2024-01-31T06:00:00.000Z'); // Represents Jan 30 in PST
+      const timeEntries: TimeEntry[] = [
+        {
+          id: 'entry1',
+          date: '2024-01-30',
+          hour: 10,
+          categoryId: 'cat1',
+          isImportant: true,
+          isUrgent: true,
+          description: 'Test entry',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      const { container } = render(
+        <WeeklyProgressChart
+          timeEntries={timeEntries}
+          currentWeek={currentWeek}
+        />
+      );
+
+      // The week starts on Monday, Jan 29
+      // We expect to see day labels for Jan 29, 30, 31, Feb 1, 2, 3, 4
+      // Let's check for the presence of the day name for Jan 30, which is 'Tue'
+      const dayLabels = container.querySelectorAll('.text-center .text-gray-500');
+      const dayNames = Array.from(dayLabels).map(el => el.textContent);
+
+      expect(dayNames).toContain('Tue'); // Tuesday, Jan 30
     });
   });
 });

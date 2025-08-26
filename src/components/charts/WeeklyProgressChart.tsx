@@ -1,8 +1,9 @@
 'use client';
 
+import { formatDateString, getShortDayName } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { TimeEntry } from '@/types';
-import { addDays, format, startOfWeek } from 'date-fns';
+import { addDays, startOfWeek } from 'date-fns';
 import { Download } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -29,7 +30,7 @@ export default function WeeklyProgressChart({
 
     for (let i = 0; i < 7; i++) {
       const day = addDays(weekStart, i);
-      const dayString = format(day, 'yyyy-MM-dd');
+      const dayString = formatDateString(day);
       const dayEntries = timeEntries.filter(entry => entry.date === dayString);
       dailyHours[dayString] = dayEntries.length;
       totalHours += dayEntries.length;
@@ -47,7 +48,7 @@ export default function WeeklyProgressChart({
   }, [timeEntries, currentWeek]);
 
   const getDayName = (date: Date) => {
-    return format(date, 'EEE'); // Mon, Tue, Wed, etc.
+    return getShortDayName(date);
   };
 
   const getProgressColor = (percentage: number) => {
@@ -71,7 +72,7 @@ export default function WeeklyProgressChart({
   const exportDataAsCSV = () => {
     const csvData = Array.from({ length: 7 }, (_, i) => {
       const day = addDays(weekData.weekStart, i);
-      const dayString = format(day, 'yyyy-MM-dd');
+      const dayString = formatDateString(day);
       const hours = weekData.dailyHours[dayString] || 0;
       return {
         Date: dayString,
@@ -128,7 +129,7 @@ export default function WeeklyProgressChart({
               "font-medium text-gray-900",
               containerWidth < 350 ? "text-xs" : "text-sm"
             )}>
-              {weekData.totalHours}h / {weekData.totalPossibleHours}h ({weekData.completionPercentage}%)
+              {`${weekData.totalHours}h / ${weekData.totalPossibleHours}h (${weekData.completionPercentage}%)`}
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -151,7 +152,7 @@ export default function WeeklyProgressChart({
           <div className="grid grid-cols-7 gap-1.5">
             {Array.from({ length: 7 }, (_, i) => {
               const day = addDays(weekData.weekStart, i);
-              const dayString = format(day, 'yyyy-MM-dd');
+              const dayString = formatDateString(day);
               const hours = weekData.dailyHours[dayString] || 0;
               const maxHours = 14;
               const percentage = (hours / maxHours) * 100;
@@ -181,7 +182,7 @@ export default function WeeklyProgressChart({
                       "text-gray-600 mt-1",
                       containerWidth < 350 ? "text-[10px]" : "text-xs"
                     )}>
-                      {hours}h
+                      {`${hours}h`}
                     </div>
                   </div>
                 </div>

@@ -57,7 +57,7 @@ describe('CategoryFilterPanel', () => {
     render(
       <CategoryFilterPanel
         categories={mockCategories}
-        selectedCategories={['1']} // Only Work is selected/visible
+        selectedCategories={['1']} // Only Work is hidden
         onToggleCategory={mockOnToggleCategory}
         onSelectAll={mockOnSelectAll}
         onSelectNone={mockOnSelectNone}
@@ -139,7 +139,7 @@ describe('CategoryFilterPanel', () => {
     render(
       <CategoryFilterPanel
         categories={mockCategories}
-        selectedCategories={['1', '2', '3']} // All hidden (all selected in filter)
+        selectedCategories={['1', '2', '3']} // All hidden
         onToggleCategory={mockOnToggleCategory}
         onSelectAll={mockOnSelectAll}
         onSelectNone={mockOnSelectNone}
@@ -169,19 +169,48 @@ describe('CategoryFilterPanel', () => {
     render(
       <CategoryFilterPanel
         categories={mockCategories}
-        selectedCategories={['2']} // Only Study is selected/visible
+        selectedCategories={['2']} // Study is hidden
         onToggleCategory={mockOnToggleCategory}
         onSelectAll={mockOnSelectAll}
         onSelectNone={mockOnSelectNone}
       />
     );
 
-    // Only Study should be visible (in selectedCategories)
+    // Work and Exercise should be visible
     const visibleElements = screen.getAllByText('Visible');
-    expect(visibleElements).toHaveLength(1);
+    expect(visibleElements).toHaveLength(2);
 
-    // Work and Exercise should be hidden (not in selectedCategories)
+    // Only Study should be hidden
     const hiddenElements = screen.getAllByText('Hidden');
-    expect(hiddenElements).toHaveLength(2);
+    expect(hiddenElements).toHaveLength(1);
+  });
+
+  test('hides all categories when "Hide All" is clicked', () => {
+    const { rerender } = render(
+      <CategoryFilterPanel
+        categories={mockCategories}
+        selectedCategories={[]}
+        onToggleCategory={mockOnToggleCategory}
+        onSelectAll={mockOnSelectAll}
+        onSelectNone={mockOnSelectNone}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Hide All'));
+
+    // This simulates the parent component updating the state
+    rerender(
+      <CategoryFilterPanel
+        categories={mockCategories}
+        selectedCategories={['1', '2', '3']}
+        onToggleCategory={mockOnToggleCategory}
+        onSelectAll={mockOnSelectAll}
+        onSelectNone={mockOnSelectNone}
+      />
+    );
+
+    const hiddenElements = screen.getAllByText('Hidden');
+    expect(hiddenElements).toHaveLength(3);
+    expect(screen.getByText('No categories visible')).toBeInTheDocument();
   });
 });

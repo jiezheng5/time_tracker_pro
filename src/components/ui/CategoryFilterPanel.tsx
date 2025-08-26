@@ -20,23 +20,19 @@ export function CategoryFilterPanel({
   onSelectNone,
   className = ''
 }: CategoryFilterPanelProps) {
-  const allSelected = selectedCategories.length === 0; // Empty means all selected
-  const noneSelected = selectedCategories.length === categories.length;
-  const someSelected = selectedCategories.length > 0 && selectedCategories.length < categories.length;
+  const allVisible = selectedCategories.length === 0;
+  const noneVisible = categories.length > 0 && selectedCategories.length === categories.length;
+  const someVisible = !allVisible && !noneVisible;
 
-  // When no categories are selected in the filter, it means "show all"
-  // When some categories are selected, it means "show only these"
   const isVisible = (categoryId: string) => {
-    return selectedCategories.length === 0 || selectedCategories.includes(categoryId);
+    return !selectedCategories.includes(categoryId);
   };
 
   const handleSelectAll = () => {
-    // Clear all filters to show all categories
     onSelectAll();
   };
 
   const handleSelectNone = () => {
-    // Select all categories to hide all (this is a bit counterintuitive but matches the filter logic)
     onSelectNone();
   };
 
@@ -47,7 +43,7 @@ export function CategoryFilterPanel({
         <div className="flex gap-2">
           <button
             onClick={handleSelectAll}
-            disabled={allSelected}
+            disabled={allVisible}
             className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
           >
             Show All
@@ -55,7 +51,7 @@ export function CategoryFilterPanel({
           <span className="text-xs text-gray-300">|</span>
           <button
             onClick={handleSelectNone}
-            disabled={noneSelected}
+            disabled={noneVisible}
             className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
           >
             Hide All
@@ -79,8 +75,7 @@ export function CategoryFilterPanel({
               >
                 <button
                   onClick={() => onToggleCategory(category.id)}
-                  className={`flex items-center justify-center w-5 h-5 rounded border-2 transition-colors ${
-                    visible
+                  className={`flex items-center justify-center w-5 h-5 rounded border-2 transition-colors ${                    visible
                       ? 'bg-blue-50 border-blue-500 text-blue-600'
                       : 'bg-gray-50 border-gray-300 text-gray-400'
                   }`}
@@ -98,8 +93,7 @@ export function CategoryFilterPanel({
                 />
 
                 <span
-                  className={`text-sm flex-1 transition-colors ${
-                    visible ? 'text-gray-900' : 'text-gray-400'
+                  className={`text-sm flex-1 transition-colors ${                    visible ? 'text-gray-900' : 'text-gray-400'
                   }`}
                 >
                   {category.name}
@@ -118,11 +112,11 @@ export function CategoryFilterPanel({
       <div className="mt-3 pt-3 border-t border-gray-200">
         <div className="flex items-center justify-between text-xs">
           <span className="text-gray-600">
-            {allSelected && 'All categories visible'}
-            {someSelected && `${categories.length - selectedCategories.length} of ${categories.length} visible`}
-            {noneSelected && 'No categories visible'}
+            {allVisible && 'All categories visible'}
+            {someVisible && `${categories.length - selectedCategories.length} of ${categories.length} visible`}
+            {noneVisible && 'No categories visible'}
           </span>
-          {(someSelected || noneSelected) && (
+          {(someVisible || noneVisible) && (
             <button
               onClick={handleSelectAll}
               className="text-blue-600 hover:text-blue-800 underline"

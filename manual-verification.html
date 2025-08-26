@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Verification Checklist</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .checklist { margin: 20px 0; }
+        .check-item { 
+            margin: 10px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            background: #f9f9f9;
+        }
+        .check-item input[type="checkbox"] { 
+            margin-right: 10px; 
+            transform: scale(1.2);
+        }
+        .check-item label { 
+            font-weight: bold; 
+            cursor: pointer;
+        }
+        .instructions { 
+            margin-top: 10px; 
+            color: #666; 
+            font-size: 14px;
+        }
+        .status { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border-radius: 5px; 
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .app-link { 
+            display: inline-block; 
+            margin: 20px 0; 
+            padding: 15px 30px; 
+            background: #007bff; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            font-weight: bold;
+        }
+        .app-link:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Manual Verification Checklist</h1>
+    <p>Please test each fix manually in the running application:</p>
+    
+    <a href="http://localhost:3000" target="_blank" class="app-link">🚀 Open Time Tracking App</a>
+
+    <div class="checklist">
+        <h2>✅ Fix 1: Stats Panel Width Resizing</h2>
+        
+        <div class="check-item">
+            <input type="checkbox" id="check1-1">
+            <label for="check1-1">Navigate to Stats tab</label>
+            <div class="instructions">
+                Click on the "Stats" tab in the left sidebar to switch to the stats view.
+            </div>
+        </div>
+
+        <div class="check-item">
+            <input type="checkbox" id="check1-2">
+            <label for="check1-2">Locate the resize handle</label>
+            <div class="instructions">
+                Look for a vertical line with a grip icon (⋮⋮) between the left panel and main content area.
+            </div>
+        </div>
+
+        <div class="check-item">
+            <input type="checkbox" id="check1-3">
+            <label for="check1-3">Test panel resizing</label>
+            <div class="instructions">
+                Drag the resize handle left and right. The panel should resize smoothly between 350px and 800px width.
+            </div>
+        </div>
+
+        <div class="check-item">
+            <input type="checkbox" id="check1-4">
+            <label for="check1-4">Verify resize persistence</label>
+            <div class="instructions">
+                Resize the panel, then refresh the page. The panel should maintain its size.
+            </div>
+        </div>
+    </div>
+
+    <div class="checklist">
+        <h2>🌐 Fix 2: Pacific Time Configuration</h2>
+        
+        <div class="check-item">
+            <input type="checkbox" id="check2-1">
+            <label for="check2-1">Check today's date highlighting</label>
+            <div class="instructions">
+                In the time grid, today's column should be highlighted with a different background color.
+                Compare with your system date (accounting for Pacific Time zone).
+            </div>
+        </div>
+
+        <div class="check-item">
+            <input type="checkbox" id="check2-2">
+            <label for="check2-2">Test "Today" button</label>
+            <div class="instructions">
+                Click the "Today" button in the header. It should navigate to the current week in Pacific Time.
+            </div>
+        </div>
+
+        <div class="check-item">
+            <input type="checkbox" id="check2-3">
+            <label for="check2-3">Verify week dates</label>
+            <div class="instructions">
+                Check the week header dates. They should be correct for Pacific Time zone.
+                Current Pacific Time: <span id="pacific-time"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="checklist">
+        <h2>👁️ Fix 3: Category Visibility 'Hide All'</h2>
+        
+        <div class="check-item">
+            <input type="checkbox" id="check3-1">
+            <label for="check3-1">Navigate to Category Visibility</label>
+            <div class="instructions">
+                Go to Stats tab, scroll down to find the "Category Visibility" section.
+            </div>
+        </div>
+
+        <div class="check-item">
+            <input type="checkbox" id="check3-2">
+            <label for="check3-2">Test "Hide All" button</label>
+            <div class="instructions">
+                Click the "Hide All" button. All categories should show eye-off icons (👁️‍🗨️ → 🚫👁️).
+            </div>
+        </div>
+
+        <div class="check-item">
+            <input type="checkbox" id="check3-3">
+            <label for="check3-3">Verify charts update</label>
+            <div class="instructions">
+                After hiding all categories, the charts should show "No data" or empty states.
+            </div>
+        </div>
+
+        <div class="check-item">
+            <input type="checkbox" id="check3-4">
+            <label for="check3-4">Test "Show All" button</label>
+            <div class="instructions">
+                Click the "Show All" button to restore visibility. All categories should show eye icons again.
+            </div>
+        </div>
+    </div>
+
+    <div id="status" class="status warning">
+        <span id="status-text">Please complete the checklist above</span>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <h3>🐛 If Issues Persist:</h3>
+        <p>If any of the fixes don't work as expected, please provide:</p>
+        <ul>
+            <li>Which specific step failed</li>
+            <li>What you see vs. what you expect</li>
+            <li>Any browser console errors (F12 → Console tab)</li>
+            <li>Screenshots if helpful</li>
+        </ul>
+    </div>
+
+    <script>
+        // Update Pacific Time display
+        const now = new Date();
+        const pacificTime = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Los_Angeles',
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }).format(now);
+        document.getElementById('pacific-time').textContent = pacificTime;
+
+        // Track checklist completion
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const statusDiv = document.getElementById('status');
+        const statusText = document.getElementById('status-text');
+
+        function updateStatus() {
+            const total = checkboxes.length;
+            const checked = document.querySelectorAll('input[type="checkbox"]:checked').length;
+            const percentage = Math.round((checked / total) * 100);
+
+            if (percentage === 100) {
+                statusDiv.className = 'status success';
+                statusText.textContent = '🎉 All fixes verified! All three issues should now be resolved.';
+            } else if (percentage >= 50) {
+                statusDiv.className = 'status warning';
+                statusText.textContent = `✅ Progress: ${checked}/${total} items checked (${percentage}%)`;
+            } else {
+                statusDiv.className = 'status warning';
+                statusText.textContent = `📋 Progress: ${checked}/${total} items checked (${percentage}%)`;
+            }
+        }
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateStatus);
+        });
+
+        updateStatus();
+    </script>
+</body>
+</html>

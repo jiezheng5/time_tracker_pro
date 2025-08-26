@@ -2,6 +2,7 @@
 
 import { TimeTrackingRepository } from '@/lib/repositories/TimeTrackingRepository';
 import { LocalStorageService } from '@/lib/services/StorageService';
+import { formatDateString, getCurrentPacificDate, getWeekDays } from '@/lib/utils';
 import { Category, CategoryFormData, ChartFilters, EisenhowerQuadrant, PlannedEntry, TimeEntry, TimeEntryFormData } from '@/types';
 import { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
 
@@ -31,12 +32,15 @@ type TimeTrackingAction =
   | { type: 'UPSERT_PLANNED_ENTRY'; payload: PlannedEntry }
   | { type: 'DELETE_PLANNED_ENTRY'; payload: string }
   | { type: 'SET_CURRENT_WEEK'; payload: Date }
+  | { type: 'CLEAR_WEEK_DATA'; payload: Date }
+  | { type: 'CLEAR_CELL_DATA'; payload: { date: string; hour: number } }
   | { type: 'TOGGLE_CATEGORY_FILTER'; payload: string }
   | { type: 'SET_DATE_RANGE_FILTER'; payload: { startDate: Date; endDate: Date } }
   | { type: 'CLEAR_DATE_RANGE_FILTER' }
   | { type: 'TOGGLE_QUADRANT_FILTER'; payload: EisenhowerQuadrant }
   | { type: 'CLEAR_ALL_FILTERS' }
-  | { type: 'SELECT_ONLY_CATEGORY'; payload: string };
+  | { type: 'SELECT_ONLY_CATEGORY'; payload: string }
+  | { type: 'HIDE_ALL_CATEGORIES' };
 
 // Context interface
 interface TimeTrackingContextType {
@@ -66,10 +70,14 @@ interface TimeTrackingContextType {
     toggleQuadrantFilter: (quadrant: EisenhowerQuadrant) => void;
     clearAllFilters: () => void;
     selectOnlyCategory: (categoryId: string) => void;
+    hideAllCategories: () => void;
 
     // Utility actions
     clearAllData: () => Promise<void>;
     refreshData: () => Promise<void>;
+    clearWeekData: (weekDate: Date) => Promise<void>;
+    clearCellData: (date: string, hour: number) => Promise<void>;
+    loadDefaultCategories: () => Promise<void>;
   };
 }
 
@@ -80,7 +88,7 @@ const initialState: TimeTrackingState = {
   plannedEntries: [],
   isLoading: true,
   error: null,
-  currentWeek: new Date(),
+  currentWeek: getCurrentPacificDate(),
   chartFilters: {
     selectedCategories: [], // Empty = show all
     selectedQuadrants: [], // Empty = show all
@@ -241,6 +249,37 @@ function timeTrackingReducer(state: TimeTrackingState, action: TimeTrackingActio
           ...state.chartFilters,
           selectedCategories: [action.payload],
         },
+      };
+
+    case 'HIDE_ALL_CATEGORIES':
+      return {
+        ...state,
+        chartFilters: {
+          ...state.chartFilters,
+          selectedCategories: state.categories.map(cat => cat.id),
+        },
+      };
+
+    case 'CLEAR_WEEK_DATA':
+      const weekDate = action.payload;
+      const weekDays = getWeekDays(weekDate);
+      const weekDateStrings = weekDays.map(day => formatDateString(day));
+
+      return {
+        ...state,
+        timeEntries: state.timeEntries.filter(entry => !weekDateStrings.includes(entry.date)),
+        plannedEntries: state.plannedEntries.filter(entry => !weekDateStrings.includes(entry.date)),
+      };
+
+    case 'CLEAR_CELL_DATA':
+      return {
+        ...state,
+        timeEntries: state.timeEntries.filter(
+          entry => !(entry.date === action.payload.date && entry.hour === action.payload.hour)
+        ),
+        plannedEntries: state.plannedEntries.filter(
+          entry => !(entry.date === action.payload.date && entry.hour === action.payload.hour)
+        ),
       };
 
     default:
@@ -458,6 +497,83 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
 
     selectOnlyCategory: (categoryId: string) => {
       dispatch({ type: 'SELECT_ONLY_CATEGORY', payload: categoryId });
+    },
+
+    hideAllCategories: () => {
+      dispatch({ type: 'HIDE_ALL_CATEGORIES' });
+    },
+
+    clearWeekData: async (weekDate: Date) => {
+      try {
+        const weekDays = getWeekDays(weekDate);
+        const weekDateStrings = weekDays.map(day => formatDateString(day));
+
+        // Clear time entries from repository
+        await Promise.all(
+          weekDateStrings.flatMap(date =>
+            Array.from({ length: 14 }, (_, i) => i + 9).map(hour =>
+              repository.deleteTimeEntry(date, hour).catch(() => { }) // Ignore errors for non-existent entries
+            )
+          )
+        );
+
+        // Clear planned entries from repository
+        const plannedEntriesToDelete = state.plannedEntries.filter(entry =>
+          weekDateStrings.includes(entry.date)
+        );
+        await Promise.all(
+          plannedEntriesToDelete.map(entry =>
+            repository.deletePlannedEntry(entry.id).catch(() => { }) // Ignore errors for non-existent entries
+          )
+        );
+
+        // Update state
+        dispatch({ type: 'CLEAR_WEEK_DATA', payload: weekDate });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to clear week data';
+        dispatch({ type: 'SET_ERROR', payload: message });
+        throw error;
+      }
+    },
+
+    clearCellData: async (date: string, hour: number) => {
+      try {
+        // Clear time entry from repository
+        await repository.deleteTimeEntry(date, hour).catch(() => { }); // Ignore errors for non-existent entries
+
+        // Clear planned entry from repository
+        const plannedEntryToDelete = state.plannedEntries.find(entry =>
+          entry.date === date && entry.hour === hour
+        );
+        if (plannedEntryToDelete) {
+          await repository.deletePlannedEntry(plannedEntryToDelete.id).catch(() => { }); // Ignore errors for non-existent entries
+        }
+
+        // Update state
+        dispatch({ type: 'CLEAR_CELL_DATA', payload: { date, hour } });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to clear cell data';
+        dispatch({ type: 'SET_ERROR', payload: message });
+        throw error;
+      }
+    },
+
+    loadDefaultCategories: async () => {
+      try {
+        // Clear all existing categories first
+        await repository.clearAllCategories();
+
+        // Load default categories
+        const defaultCategories = await repository.loadDefaultCategories();
+        const categories = defaultCategories.map(cat => cat.toJSON());
+
+        // Update state
+        dispatch({ type: 'SET_CATEGORIES', payload: categories });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to load default categories';
+        dispatch({ type: 'SET_ERROR', payload: message });
+        throw error;
+      }
     },
   };
 

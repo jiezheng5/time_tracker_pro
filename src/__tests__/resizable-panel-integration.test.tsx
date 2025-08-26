@@ -22,6 +22,7 @@ describe('ResizablePanel Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLocalStorage.getItem.mockReturnValue(null);
+    document.body.classList.remove('resize-active');
   });
 
   test('renders with drag handle and proper ARIA attributes', () => {
@@ -136,7 +137,7 @@ describe('ResizablePanel Integration Tests', () => {
     expect(document.body.classList.contains('resize-active')).toBe(true);
 
     // Simulate drag end
-    fireEvent.mouseUp(resizeHandle);
+    fireEvent.mouseUp(document);
 
     // Check return to initial state
     expect(gripIcon).toHaveClass('text-gray-400');
@@ -157,5 +158,35 @@ describe('ResizablePanel Integration Tests', () => {
     render(<TestComponent />);
 
     expect(screen.getByText('Width: 400')).toBeInTheDocument();
+  });
+
+  test('allows user to resize the panel by dragging the handle', () => {
+    render(
+      <ResizablePanel defaultWidth={300} minWidth={200} maxWidth={500}>
+        <div>Content</div>
+      </ResizablePanel>
+    );
+
+    const panel = screen.getByRole('separator').parentElement;
+    const resizeHandle = screen.getByRole('separator');
+
+    // Check initial width
+    expect(panel).toHaveStyle('width: 300px');
+
+    // Start dragging
+    fireEvent.mouseDown(resizeHandle, { clientX: 300 });
+
+    // Simulate dragging by 100px
+    fireEvent.mouseMove(document, { clientX: 400 });
+
+    // End dragging
+    fireEvent.mouseUp(document);
+
+    // Check final width
+    // The parent of the separator is the resizable div
+    expect(panel).toHaveStyle('width: 400px');
+
+    // Verify localStorage was updated
+    expect(mockLocalStorage.setItem).toHaveBeenCalledWith('resizable-panel-width', '400');
   });
 });

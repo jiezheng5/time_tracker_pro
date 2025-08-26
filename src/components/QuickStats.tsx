@@ -223,7 +223,7 @@ export function QuickStats() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="space-y-4">
           {/* Date Range Picker */}
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
@@ -244,14 +244,7 @@ export function QuickStats() {
               selectedCategories={state.chartFilters.selectedCategories}
               onToggleCategory={actions.toggleCategoryFilter}
               onSelectAll={actions.clearAllFilters}
-              onSelectNone={() => {
-                // Select all categories to hide all
-                state.categories.forEach(cat => {
-                  if (!state.chartFilters.selectedCategories.includes(cat.id)) {
-                    actions.toggleCategoryFilter(cat.id);
-                  }
-                });
-              }}
+              onSelectNone={actions.hideAllCategories}
             />
           </div>
         </div>

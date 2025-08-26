@@ -3,6 +3,10 @@
 .github/
 .vscode/
 .idea/
+.augment/
+.next/
+.cache/
+.swc/
 
 
 *.mdx

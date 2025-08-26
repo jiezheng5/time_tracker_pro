@@ -294,6 +294,26 @@ export class TimeTrackingRepository {
   }
 
   /**
+   * Clear all categories
+   */
+  async clearAllCategories(): Promise<void> {
+    this.ensureLoaded();
+    this.data!.categories = [];
+    await this.saveData();
+  }
+
+  /**
+   * Load default categories
+   */
+  async loadDefaultCategories(): Promise<Category[]> {
+    this.ensureLoaded();
+    const defaultCategories = Category.createDefaults();
+    this.data!.categories = defaultCategories.map(cat => cat.toJSON());
+    await this.saveData();
+    return defaultCategories;
+  }
+
+  /**
    * Clear all data
    */
   async clearAllData(): Promise<void> {

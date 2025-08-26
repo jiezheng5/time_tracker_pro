@@ -3,12 +3,14 @@
 import { ExportButton } from '@/components/ExportButton';
 import { Button } from '@/components/ui/Button';
 import { DatePicker } from '@/components/ui/DatePicker';
-import { getNextWeek, getPreviousWeek, getWeekString } from '@/lib/utils';
+import { getCurrentPacificDate, getNextWeek, getPreviousWeek, getWeekString } from '@/lib/utils';
 import { useTimeTracking } from '@/stores/TimeTrackingContext';
-import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 export function Header() {
   const { state, actions } = useTimeTracking();
+  const [isClearing, setIsClearing] = useState(false);
 
   const handlePreviousWeek = () => {
     const previousWeek = getPreviousWeek(state.currentWeek);
@@ -21,7 +23,22 @@ export function Header() {
   };
 
   const handleToday = () => {
-    actions.setCurrentWeek(new Date());
+    actions.setCurrentWeek(getCurrentPacificDate());
+  };
+
+  const handleClearWeek = async () => {
+    if (!confirm('Are you sure you want to clear all time entries for this week? This action cannot be undone.')) {
+      return;
+    }
+
+    setIsClearing(true);
+    try {
+      await actions.clearWeekData(state.currentWeek);
+    } catch (error) {
+      console.error('Failed to clear week data:', error);
+    } finally {
+      setIsClearing(false);
+    }
   };
 
   return (
@@ -84,6 +101,17 @@ export function Header() {
 
         {/* Actions */}
         <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearWeek}
+            disabled={isClearing}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            title="Clear all entries for this week"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {isClearing ? 'Clearing...' : 'Clear Week'}
+          </Button>
           <ExportButton />
         </div>
       </div>

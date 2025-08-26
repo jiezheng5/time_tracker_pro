@@ -9,7 +9,7 @@ import { WORK_HOURS } from '@/types';
 import { useState } from 'react';
 
 export function TimeGrid() {
-  const { state } = useTimeTracking();
+  const { state, actions } = useTimeTracking();
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; hour: number } | null>(null);
   const [selectedPlanSlot, setSelectedPlanSlot] = useState<{ date: string; hour: number } | null>(null);
 
@@ -26,6 +26,18 @@ export function TimeGrid() {
 
   const handlePlanSlotClick = (date: string, hour: number) => {
     setSelectedPlanSlot({ date, hour });
+  };
+
+  const handleClearCell = async (date: string, hour: number) => {
+    if (!confirm('Are you sure you want to clear this time slot? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await actions.clearCellData(date, hour);
+    } catch (error) {
+      console.error('Failed to clear cell data:', error);
+    }
   };
 
   const handleCloseModal = () => {
@@ -93,6 +105,7 @@ export function TimeGrid() {
                     timeSlot={timeSlot!}
                     onClick={() => handleSlotClick(day.date, hour)}
                     onPlanClick={() => handlePlanSlotClick(day.date, hour)}
+                    onClearCell={() => handleClearCell(day.date, hour)}
                     isToday={isToday(new Date(day.date))}
                     showPlanSection={true}
                   />

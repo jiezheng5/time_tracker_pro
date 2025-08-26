@@ -1,16 +1,16 @@
 'use client';
 
-import { useMemo } from 'react';
 import { TimeEntry } from '@/types';
+import { useMemo } from 'react';
 
 interface EisenhowerMatrixChartProps {
   timeEntries: TimeEntry[];
   className?: string;
 }
 
-export function EisenhowerMatrixChart({ 
-  timeEntries, 
-  className = '' 
+export function EisenhowerMatrixChart({
+  timeEntries,
+  className = ''
 }: EisenhowerMatrixChartProps) {
   const matrixData = useMemo(() => {
     const quadrants = {
@@ -33,7 +33,7 @@ export function EisenhowerMatrixChart({
     });
 
     const totalEntries = timeEntries.length;
-    
+
     return {
       quadrants,
       totalEntries,
@@ -43,6 +43,52 @@ export function EisenhowerMatrixChart({
   const getPercentage = (count: number) => {
     if (matrixData.totalEntries === 0) return 0;
     return Math.round((count / matrixData.totalEntries) * 100);
+  };
+
+  const exportDataAsCSV = () => {
+    const csvData = [
+      {
+        Quadrant: 'Q1 - Do First',
+        Description: 'Important + Urgent',
+        Hours: matrixData.quadrants.q1.count,
+        Percentage: getPercentage(matrixData.quadrants.q1.count),
+        Symbol: matrixData.quadrants.q1.symbol
+      },
+      {
+        Quadrant: 'Q2 - Schedule',
+        Description: 'Important + Not Urgent',
+        Hours: matrixData.quadrants.q2.count,
+        Percentage: getPercentage(matrixData.quadrants.q2.count),
+        Symbol: matrixData.quadrants.q2.symbol
+      },
+      {
+        Quadrant: 'Q3 - Delegate',
+        Description: 'Not Important + Urgent',
+        Hours: matrixData.quadrants.q3.count,
+        Percentage: getPercentage(matrixData.quadrants.q3.count),
+        Symbol: matrixData.quadrants.q3.symbol
+      },
+      {
+        Quadrant: 'Q4 - Eliminate',
+        Description: 'Not Important + Not Urgent',
+        Hours: matrixData.quadrants.q4.count,
+        Percentage: getPercentage(matrixData.quadrants.q4.count),
+        Symbol: matrixData.quadrants.q4.symbol
+      }
+    ];
+
+    const csvContent = [
+      ['Quadrant', 'Description', 'Hours', 'Percentage', 'Symbol'].join(','),
+      ...csvData.map(row => [row.Quadrant, row.Description, row.Hours, row.Percentage, row.Symbol].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = 'eisenhower-matrix-data.csv';
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   if (matrixData.totalEntries === 0) {
@@ -59,8 +105,17 @@ export function EisenhowerMatrixChart({
 
   return (
     <div className={`bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
-      <h3 className="text-sm font-medium text-gray-900 mb-4">Priority Distribution (Eisenhower Matrix)</h3>
-      
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-medium text-gray-900">Priority Distribution (Eisenhower Matrix)</h3>
+        <button
+          onClick={exportDataAsCSV}
+          className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+          title="Export data as CSV"
+        >
+          CSV
+        </button>
+      </div>
+
       {/* Matrix Grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         {/* Q1: Important + Urgent */}
@@ -126,7 +181,7 @@ export function EisenhowerMatrixChart({
           <span className="text-gray-600">Total Time Tracked:</span>
           <span className="font-medium text-gray-900">{matrixData.totalEntries} hours</span>
         </div>
-        
+
         {/* Recommendations */}
         <div className="mt-3 p-3 bg-blue-50 rounded-lg">
           <h4 className="text-xs font-medium text-blue-900 mb-1">💡 Recommendations</h4>

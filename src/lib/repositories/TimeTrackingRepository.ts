@@ -1,7 +1,8 @@
+import { AppData, CategoryFormData, PlannedEntryFormData, TimeEntryFormData } from '@/types';
 import { Category } from '../models/Category';
+import { PlannedEntry } from '../models/PlannedEntry';
 import { TimeEntry } from '../models/TimeEntry';
 import { IStorageService } from '../services/StorageService';
-import { AppData, CategoryFormData, TimeEntryFormData } from '@/types';
 import { formatDateString } from '../utils';
 
 /**
@@ -12,7 +13,7 @@ export class TimeTrackingRepository {
   private data: AppData | null = null;
   private isLoaded = false;
 
-  constructor(private storageService: IStorageService) {}
+  constructor(private storageService: IStorageService) { }
 
   /**
    * Initialize repository by loading data
@@ -43,7 +44,7 @@ export class TimeTrackingRepository {
   }
 
   // Category operations
-  
+
   /**
    * Get all categories
    */
@@ -66,12 +67,12 @@ export class TimeTrackingRepository {
    */
   async createCategory(formData: CategoryFormData): Promise<Category> {
     this.ensureLoaded();
-    
+
     // Check for duplicate names
     const existingCategory = this.data!.categories.find(
       cat => cat.name.toLowerCase() === formData.name.toLowerCase()
     );
-    
+
     if (existingCategory) {
       throw new Error('Category with this name already exists');
     }
@@ -79,7 +80,7 @@ export class TimeTrackingRepository {
     const category = Category.fromFormData(formData);
     this.data!.categories.push(category.toJSON());
     await this.saveData();
-    
+
     return category;
   }
 
@@ -88,7 +89,7 @@ export class TimeTrackingRepository {
    */
   async updateCategory(id: string, updates: Partial<CategoryFormData>): Promise<Category> {
     this.ensureLoaded();
-    
+
     const index = this.data!.categories.findIndex(cat => cat.id === id);
     if (index === -1) {
       throw new Error('Category not found');
@@ -99,7 +100,7 @@ export class TimeTrackingRepository {
       const existingCategory = this.data!.categories.find(
         cat => cat.id !== id && cat.name.toLowerCase() === updates.name!.toLowerCase()
       );
-      
+
       if (existingCategory) {
         throw new Error('Category with this name already exists');
       }
@@ -107,10 +108,10 @@ export class TimeTrackingRepository {
 
     const currentCategory = new Category(this.data!.categories[index]);
     const updatedCategory = currentCategory.update(updates);
-    
+
     this.data!.categories[index] = updatedCategory.toJSON();
     await this.saveData();
-    
+
     return updatedCategory;
   }
 
@@ -119,7 +120,7 @@ export class TimeTrackingRepository {
    */
   async deleteCategory(id: string): Promise<void> {
     this.ensureLoaded();
-    
+
     // Check if category is in use
     const isInUse = this.data!.timeEntries.some(entry => entry.categoryId === id);
     if (isInUse) {
@@ -146,14 +147,22 @@ export class TimeTrackingRepository {
   }
 
   /**
+   * Get all planned entries
+   */
+  async getPlannedEntries(): Promise<PlannedEntry[]> {
+    this.ensureLoaded();
+    return this.data!.plannedEntries.map(entry => new PlannedEntry(entry));
+  }
+
+  /**
    * Get time entries for a specific date range
    */
   async getTimeEntriesForDateRange(startDate: Date, endDate: Date): Promise<TimeEntry[]> {
     this.ensureLoaded();
-    
+
     const start = formatDateString(startDate);
     const end = formatDateString(endDate);
-    
+
     return this.data!.timeEntries
       .filter(entry => entry.date >= start && entry.date <= end)
       .map(entry => new TimeEntry(entry));
@@ -164,11 +173,11 @@ export class TimeTrackingRepository {
    */
   async getTimeEntry(date: string, hour: number): Promise<TimeEntry | null> {
     this.ensureLoaded();
-    
+
     const entryData = this.data!.timeEntries.find(
       entry => entry.date === date && entry.hour === hour
     );
-    
+
     return entryData ? new TimeEntry(entryData) : null;
   }
 
@@ -181,7 +190,7 @@ export class TimeTrackingRepository {
     formData: TimeEntryFormData
   ): Promise<TimeEntry> {
     this.ensureLoaded();
-    
+
     // Verify category exists
     const categoryExists = this.data!.categories.some(cat => cat.id === formData.categoryId);
     if (!categoryExists) {
@@ -212,16 +221,75 @@ export class TimeTrackingRepository {
    */
   async deleteTimeEntry(date: string, hour: number): Promise<void> {
     this.ensureLoaded();
-    
+
     const index = this.data!.timeEntries.findIndex(
       entry => entry.date === date && entry.hour === hour
     );
-    
+
     if (index === -1) {
       throw new Error('Time entry not found');
     }
 
     this.data!.timeEntries.splice(index, 1);
+    await this.saveData();
+  }
+
+  /**
+   * Create a new planned entry
+   */
+  async createPlannedEntry(date: string, hour: number, formData: PlannedEntryFormData): Promise<PlannedEntry> {
+    this.ensureLoaded();
+
+    const plannedEntry = PlannedEntry.fromFormData(date, hour, formData);
+
+    // Check for existing planned entry at this time slot
+    const existingIndex = this.data!.plannedEntries.findIndex(
+      entry => entry.date === date && entry.hour === hour
+    );
+
+    if (existingIndex >= 0) {
+      // Replace existing planned entry
+      this.data!.plannedEntries[existingIndex] = plannedEntry.toJSON();
+    } else {
+      // Add new planned entry
+      this.data!.plannedEntries.push(plannedEntry.toJSON());
+    }
+
+    await this.saveData();
+    return plannedEntry;
+  }
+
+  /**
+   * Update an existing planned entry
+   */
+  async updatePlannedEntry(id: string, formData: PlannedEntryFormData): Promise<PlannedEntry> {
+    this.ensureLoaded();
+
+    const existingIndex = this.data!.plannedEntries.findIndex(entry => entry.id === id);
+    if (existingIndex === -1) {
+      throw new Error('Planned entry not found');
+    }
+
+    const existingEntry = new PlannedEntry(this.data!.plannedEntries[existingIndex]);
+    const updatedEntry = existingEntry.update(formData);
+
+    this.data!.plannedEntries[existingIndex] = updatedEntry.toJSON();
+    await this.saveData();
+    return updatedEntry;
+  }
+
+  /**
+   * Delete a planned entry
+   */
+  async deletePlannedEntry(id: string): Promise<void> {
+    this.ensureLoaded();
+
+    const index = this.data!.plannedEntries.findIndex(entry => entry.id === id);
+    if (index === -1) {
+      throw new Error('Planned entry not found');
+    }
+
+    this.data!.plannedEntries.splice(index, 1);
     await this.saveData();
   }
 

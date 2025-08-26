@@ -2,16 +2,18 @@
 
 import { TimeTrackingRepository } from '@/lib/repositories/TimeTrackingRepository';
 import { LocalStorageService } from '@/lib/services/StorageService';
-import { Category, CategoryFormData, TimeEntry, TimeEntryFormData } from '@/types';
+import { Category, CategoryFormData, ChartFilters, EisenhowerQuadrant, PlannedEntry, TimeEntry, TimeEntryFormData } from '@/types';
 import { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
 
 // State interface
 interface TimeTrackingState {
   categories: Category[];
   timeEntries: TimeEntry[];
+  plannedEntries: PlannedEntry[];
   isLoading: boolean;
   error: string | null;
   currentWeek: Date;
+  chartFilters: ChartFilters;
 }
 
 // Action types
@@ -25,7 +27,16 @@ type TimeTrackingAction =
   | { type: 'DELETE_CATEGORY'; payload: string }
   | { type: 'UPSERT_TIME_ENTRY'; payload: TimeEntry }
   | { type: 'DELETE_TIME_ENTRY'; payload: { date: string; hour: number } }
-  | { type: 'SET_CURRENT_WEEK'; payload: Date };
+  | { type: 'SET_PLANNED_ENTRIES'; payload: PlannedEntry[] }
+  | { type: 'UPSERT_PLANNED_ENTRY'; payload: PlannedEntry }
+  | { type: 'DELETE_PLANNED_ENTRY'; payload: string }
+  | { type: 'SET_CURRENT_WEEK'; payload: Date }
+  | { type: 'TOGGLE_CATEGORY_FILTER'; payload: string }
+  | { type: 'SET_DATE_RANGE_FILTER'; payload: { startDate: Date; endDate: Date } }
+  | { type: 'CLEAR_DATE_RANGE_FILTER' }
+  | { type: 'TOGGLE_QUADRANT_FILTER'; payload: EisenhowerQuadrant }
+  | { type: 'CLEAR_ALL_FILTERS' }
+  | { type: 'SELECT_ONLY_CATEGORY'; payload: string };
 
 // Context interface
 interface TimeTrackingContextType {
@@ -40,8 +51,21 @@ interface TimeTrackingContextType {
     upsertTimeEntry: (date: string, hour: number, formData: TimeEntryFormData) => Promise<void>;
     deleteTimeEntry: (date: string, hour: number) => Promise<void>;
 
+    // Planned entry actions
+    createPlannedEntry: (date: string, hour: number, formData: PlannedEntryFormData) => Promise<void>;
+    updatePlannedEntry: (id: string, formData: PlannedEntryFormData) => Promise<void>;
+    deletePlannedEntry: (id: string) => Promise<void>;
+
     // Navigation actions
     setCurrentWeek: (date: Date) => void;
+
+    // Chart filter actions
+    toggleCategoryFilter: (categoryId: string) => void;
+    setDateRangeFilter: (startDate: Date, endDate: Date) => void;
+    clearDateRangeFilter: () => void;
+    toggleQuadrantFilter: (quadrant: EisenhowerQuadrant) => void;
+    clearAllFilters: () => void;
+    selectOnlyCategory: (categoryId: string) => void;
 
     // Utility actions
     clearAllData: () => Promise<void>;
@@ -53,9 +77,14 @@ interface TimeTrackingContextType {
 const initialState: TimeTrackingState = {
   categories: [],
   timeEntries: [],
+  plannedEntries: [],
   isLoading: true,
   error: null,
   currentWeek: new Date(),
+  chartFilters: {
+    selectedCategories: [], // Empty = show all
+    selectedQuadrants: [], // Empty = show all
+  },
 };
 
 // Reducer
@@ -122,8 +151,97 @@ function timeTrackingReducer(state: TimeTrackingState, action: TimeTrackingActio
         ),
       };
 
+    case 'SET_PLANNED_ENTRIES':
+      return { ...state, plannedEntries: action.payload };
+
+    case 'UPSERT_PLANNED_ENTRY':
+      const existingPlannedIndex = state.plannedEntries.findIndex(entry => entry.id === action.payload.id);
+      if (existingPlannedIndex >= 0) {
+        // Update existing
+        const updatedPlannedEntries = [...state.plannedEntries];
+        updatedPlannedEntries[existingPlannedIndex] = action.payload;
+        return {
+          ...state,
+          plannedEntries: updatedPlannedEntries,
+        };
+      } else {
+        // Add new
+        return {
+          ...state,
+          plannedEntries: [...state.plannedEntries, action.payload],
+        };
+      }
+
+    case 'DELETE_PLANNED_ENTRY':
+      return {
+        ...state,
+        plannedEntries: state.plannedEntries.filter(entry => entry.id !== action.payload),
+      };
+
     case 'SET_CURRENT_WEEK':
       return { ...state, currentWeek: action.payload };
+
+    case 'TOGGLE_CATEGORY_FILTER':
+      const categoryId = action.payload;
+      const isSelected = state.chartFilters.selectedCategories.includes(categoryId);
+      return {
+        ...state,
+        chartFilters: {
+          ...state.chartFilters,
+          selectedCategories: isSelected
+            ? state.chartFilters.selectedCategories.filter(id => id !== categoryId)
+            : [...state.chartFilters.selectedCategories, categoryId],
+        },
+      };
+
+    case 'SET_DATE_RANGE_FILTER':
+      return {
+        ...state,
+        chartFilters: {
+          ...state.chartFilters,
+          dateRange: action.payload,
+        },
+      };
+
+    case 'CLEAR_DATE_RANGE_FILTER':
+      return {
+        ...state,
+        chartFilters: {
+          ...state.chartFilters,
+          dateRange: undefined,
+        },
+      };
+
+    case 'TOGGLE_QUADRANT_FILTER':
+      const quadrant = action.payload;
+      const isQuadrantSelected = state.chartFilters.selectedQuadrants.includes(quadrant);
+      return {
+        ...state,
+        chartFilters: {
+          ...state.chartFilters,
+          selectedQuadrants: isQuadrantSelected
+            ? state.chartFilters.selectedQuadrants.filter(q => q !== quadrant)
+            : [...state.chartFilters.selectedQuadrants, quadrant],
+        },
+      };
+
+    case 'CLEAR_ALL_FILTERS':
+      return {
+        ...state,
+        chartFilters: {
+          selectedCategories: [],
+          selectedQuadrants: [],
+        },
+      };
+
+    case 'SELECT_ONLY_CATEGORY':
+      return {
+        ...state,
+        chartFilters: {
+          ...state.chartFilters,
+          selectedCategories: [action.payload],
+        },
+      };
 
     default:
       return state;
@@ -152,16 +270,19 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
         dispatch({ type: 'SET_LOADING', payload: true });
         await repository.initialize();
 
-        const [categoriesClasses, timeEntriesClasses] = await Promise.all([
+        const [categoriesClasses, timeEntriesClasses, plannedEntriesClasses] = await Promise.all([
           repository.getCategories(),
           repository.getTimeEntries(),
+          repository.getPlannedEntries(),
         ]);
 
         const categories = categoriesClasses.map(cat => cat.toJSON());
         const timeEntries = timeEntriesClasses.map(entry => entry.toJSON());
+        const plannedEntries = plannedEntriesClasses.map(entry => entry.toJSON());
 
         dispatch({ type: 'SET_CATEGORIES', payload: categories });
         dispatch({ type: 'SET_TIME_ENTRIES', payload: timeEntries });
+        dispatch({ type: 'SET_PLANNED_ENTRIES', payload: plannedEntries });
         dispatch({ type: 'SET_ERROR', payload: null });
       } catch (error) {
         console.error('Failed to initialize data:', error);
@@ -235,6 +356,41 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
       }
     },
 
+    createPlannedEntry: async (date: string, hour: number, formData: PlannedEntryFormData) => {
+      try {
+        const plannedEntryClass = await repository.createPlannedEntry(date, hour, formData);
+        const plannedEntry = plannedEntryClass.toJSON();
+        dispatch({ type: 'UPSERT_PLANNED_ENTRY', payload: plannedEntry });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to create planned entry';
+        dispatch({ type: 'SET_ERROR', payload: message });
+        throw error;
+      }
+    },
+
+    updatePlannedEntry: async (id: string, formData: PlannedEntryFormData) => {
+      try {
+        const plannedEntryClass = await repository.updatePlannedEntry(id, formData);
+        const plannedEntry = plannedEntryClass.toJSON();
+        dispatch({ type: 'UPSERT_PLANNED_ENTRY', payload: plannedEntry });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to update planned entry';
+        dispatch({ type: 'SET_ERROR', payload: message });
+        throw error;
+      }
+    },
+
+    deletePlannedEntry: async (id: string) => {
+      try {
+        await repository.deletePlannedEntry(id);
+        dispatch({ type: 'DELETE_PLANNED_ENTRY', payload: id });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to delete planned entry';
+        dispatch({ type: 'SET_ERROR', payload: message });
+        throw error;
+      }
+    },
+
     setCurrentWeek: (date: Date) => {
       dispatch({ type: 'SET_CURRENT_WEEK', payload: date });
     },
@@ -277,6 +433,31 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
+    },
+
+    // Chart filter actions
+    toggleCategoryFilter: (categoryId: string) => {
+      dispatch({ type: 'TOGGLE_CATEGORY_FILTER', payload: categoryId });
+    },
+
+    setDateRangeFilter: (startDate: Date, endDate: Date) => {
+      dispatch({ type: 'SET_DATE_RANGE_FILTER', payload: { startDate, endDate } });
+    },
+
+    clearDateRangeFilter: () => {
+      dispatch({ type: 'CLEAR_DATE_RANGE_FILTER' });
+    },
+
+    toggleQuadrantFilter: (quadrant: EisenhowerQuadrant) => {
+      dispatch({ type: 'TOGGLE_QUADRANT_FILTER', payload: quadrant });
+    },
+
+    clearAllFilters: () => {
+      dispatch({ type: 'CLEAR_ALL_FILTERS' });
+    },
+
+    selectOnlyCategory: (categoryId: string) => {
+      dispatch({ type: 'SELECT_ONLY_CATEGORY', payload: categoryId });
     },
   };
 

@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
 import { TimeEntry } from '@/types';
-import { format, startOfWeek, addDays } from 'date-fns';
+import { addDays, format, startOfWeek } from 'date-fns';
+import { useMemo } from 'react';
 
 interface WeeklyProgressChartProps {
   timeEntries: TimeEntry[];
@@ -10,19 +10,19 @@ interface WeeklyProgressChartProps {
   className?: string;
 }
 
-export function WeeklyProgressChart({ 
-  timeEntries, 
-  currentWeek, 
-  className = '' 
+export function WeeklyProgressChart({
+  timeEntries,
+  currentWeek,
+  className = ''
 }: WeeklyProgressChartProps) {
   const weekData = useMemo(() => {
     const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 }); // Monday start
     const totalPossibleHours = 7 * 14; // 7 days * 14 hours (9am-11pm)
-    
+
     // Count entries for each day of the week
     const dailyHours: Record<string, number> = {};
     let totalHours = 0;
-    
+
     for (let i = 0; i < 7; i++) {
       const day = addDays(weekStart, i);
       const dayString = format(day, 'yyyy-MM-dd');
@@ -30,9 +30,9 @@ export function WeeklyProgressChart({
       dailyHours[dayString] = dayEntries.length;
       totalHours += dayEntries.length;
     }
-    
+
     const completionPercentage = Math.round((totalHours / totalPossibleHours) * 100);
-    
+
     return {
       dailyHours,
       totalHours,
@@ -56,7 +56,7 @@ export function WeeklyProgressChart({
   const getDayProgressColor = (hours: number) => {
     const maxDayHours = 14; // 9am-11pm
     const percentage = (hours / maxDayHours) * 100;
-    
+
     if (percentage >= 80) return 'bg-green-400';
     if (percentage >= 60) return 'bg-yellow-400';
     if (percentage >= 40) return 'bg-orange-400';
@@ -64,10 +64,47 @@ export function WeeklyProgressChart({
     return 'bg-gray-200';
   };
 
+  const exportDataAsCSV = () => {
+    const csvData = Array.from({ length: 7 }, (_, i) => {
+      const day = addDays(weekData.weekStart, i);
+      const dayString = format(day, 'yyyy-MM-dd');
+      const hours = weekData.dailyHours[dayString] || 0;
+      return {
+        Date: dayString,
+        Day: getDayName(day),
+        Hours: hours,
+        MaxHours: 14,
+        Percentage: ((hours / 14) * 100).toFixed(1)
+      };
+    });
+
+    const csvContent = [
+      ['Date', 'Day', 'Hours', 'MaxHours', 'Percentage'].join(','),
+      ...csvData.map(row => [row.Date, row.Day, row.Hours, row.MaxHours, row.Percentage].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = 'weekly-progress-data.csv';
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className={`bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
-      <h3 className="text-sm font-medium text-gray-900 mb-4">Weekly Progress</h3>
-      
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-medium text-gray-900">Weekly Progress</h3>
+        <button
+          onClick={exportDataAsCSV}
+          className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+          title="Export data as CSV"
+        >
+          CSV
+        </button>
+      </div>
+
       {/* Overall Progress */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
@@ -77,7 +114,7 @@ export function WeeklyProgressChart({
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3">
-          <div 
+          <div
             className={`h-3 rounded-full transition-all duration-300 ${getProgressColor(weekData.completionPercentage)}`}
             style={{ width: `${Math.min(weekData.completionPercentage, 100)}%` }}
           />
@@ -94,7 +131,7 @@ export function WeeklyProgressChart({
             const hours = weekData.dailyHours[dayString] || 0;
             const maxHours = 14;
             const percentage = (hours / maxHours) * 100;
-            
+
             return (
               <div key={dayString} className="text-center">
                 <div className="text-xs text-gray-500 mb-1">
@@ -102,7 +139,7 @@ export function WeeklyProgressChart({
                 </div>
                 <div className="relative">
                   <div className="w-full bg-gray-200 rounded h-16 flex items-end">
-                    <div 
+                    <div
                       className={`w-full rounded transition-all duration-300 ${getDayProgressColor(hours)}`}
                       style={{ height: `${Math.max(percentage, 5)}%` }}
                     />

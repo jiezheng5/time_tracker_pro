@@ -1,4 +1,4 @@
-import type { Category, TimeEntry } from '@/types';
+import type { Category, PlannedEntry, TimeEntry } from '@/types';
 import { ExecutionStatus } from '@/types';
 import { clsx, type ClassValue } from 'clsx';
 import { addWeeks, eachDayOfInterval, endOfWeek, format, startOfWeek, subWeeks } from 'date-fns';
@@ -183,7 +183,12 @@ export function deepClone<T>(obj: T): T {
 /**
  * Create time slots for a given week
  */
-export function createWeekTimeSlots(weekDays: Date[], timeEntries: TimeEntry[], categories: Category[]) {
+export function createWeekTimeSlots(
+  weekDays: Date[],
+  timeEntries: TimeEntry[],
+  categories: Category[],
+  plannedEntries: PlannedEntry[] = []
+) {
   const WORK_HOURS = { START: 9, END: 22 };
 
   return weekDays.map(date => {
@@ -194,14 +199,30 @@ export function createWeekTimeSlots(weekDays: Date[], timeEntries: TimeEntry[], 
       const actualEntry = timeEntries.find(e => e.date === dateString && e.hour === hour);
       const actualCategory = actualEntry ? categories.find(c => c.id === actualEntry.categoryId) : undefined;
 
-      // For now, we only have actual entries (no planning layer yet)
-      const executionStatus = actualEntry ? ExecutionStatus.EXECUTED : ExecutionStatus.PLANNED;
+      const plannedEntry = plannedEntries.find(e => e.date === dateString && e.hour === hour);
+      const plannedCategory = plannedEntry ? categories.find(c => c.id === plannedEntry.categoryId) : undefined;
+
+      // Determine execution status
+      let executionStatus: ExecutionStatus;
+      if (plannedEntry && actualEntry) {
+        executionStatus = plannedEntry.categoryId === actualEntry.categoryId
+          ? ExecutionStatus.COMPLETED
+          : ExecutionStatus.UNPLANNED;
+      } else if (plannedEntry && !actualEntry) {
+        executionStatus = ExecutionStatus.MISSED;
+      } else if (!plannedEntry && actualEntry) {
+        executionStatus = ExecutionStatus.UNPLANNED;
+      } else {
+        executionStatus = ExecutionStatus.PLANNED;
+      }
 
       timeSlots.push({
         date: dateString,
         hour,
         actualEntry,
         actualCategory,
+        plannedEntry,
+        plannedCategory,
         executionStatus,
         // Legacy support for existing components
         entry: actualEntry,

@@ -153,6 +153,25 @@ export interface ExportData {
   description?: string;
 }
 
+// Chart filtering types
+export interface ChartFilters {
+  selectedCategories: string[]; // Category IDs to show (empty = show all)
+  dateRange?: {
+    startDate: Date;
+    endDate: Date;
+  };
+  selectedQuadrants: EisenhowerQuadrant[]; // Quadrants to show (empty = show all)
+}
+
+export interface ChartFilterActions {
+  toggleCategory: (categoryId: string) => void;
+  setDateRange: (startDate: Date, endDate: Date) => void;
+  clearDateRange: () => void;
+  toggleQuadrant: (quadrant: EisenhowerQuadrant) => void;
+  clearAllFilters: () => void;
+  selectOnlyCategory: (categoryId: string) => void;
+}
+
 // Predefined color palette for categories
 export const CATEGORY_COLORS = [
   '#3B82F6', // Blue

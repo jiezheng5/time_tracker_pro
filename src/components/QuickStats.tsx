@@ -8,16 +8,38 @@ import { useMemo } from 'react';
 import { CategoryDistributionChart } from './charts/CategoryDistributionChart';
 import { EisenhowerMatrixChart } from './charts/EisenhowerMatrixChart';
 import { WeeklyProgressChart } from './charts/WeeklyProgressChart';
+import { CategoryFilterPanel } from './ui/CategoryFilterPanel';
+import { DateRangePicker } from './ui/DateRangePicker';
 
 export function QuickStats() {
-  const { state } = useTimeTracking();
+  const { state, actions } = useTimeTracking();
 
-  // Get current week entries for charts
-  const weekDays = getWeekDays(state.currentWeek);
-  const weekDateStrings = weekDays.map(formatDateString);
-  const currentWeekEntries = state.timeEntries.filter(entry =>
-    weekDateStrings.includes(entry.date)
-  );
+  // Get current week entries for charts with filtering
+  const currentWeekEntries = useMemo(() => {
+    const weekDays = getWeekDays(state.currentWeek);
+    const weekDateStrings = weekDays.map(formatDateString);
+    let entries = state.timeEntries.filter(entry =>
+      weekDateStrings.includes(entry.date)
+    );
+
+    // Apply chart filters
+    const { selectedCategories, dateRange } = state.chartFilters;
+
+    // Filter by selected categories if any
+    if (selectedCategories.length > 0) {
+      entries = entries.filter(entry => selectedCategories.includes(entry.categoryId));
+    }
+
+    // Filter by date range if set
+    if (dateRange) {
+      entries = entries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= dateRange.startDate && entryDate <= dateRange.endDate;
+      });
+    }
+
+    return entries;
+  }, [state.timeEntries, state.currentWeek, state.chartFilters]);
 
   const weekStats = useMemo(() => {
     const weekDays = getWeekDays(state.currentWeek);
@@ -179,6 +201,54 @@ export function QuickStats() {
         </div>
       )}
 
+      {/* Chart Controls */}
+      <div className="card p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-900">Chart Filters</h3>
+          {(state.chartFilters.selectedCategories.length > 0 || state.chartFilters.dateRange) && (
+            <button
+              onClick={actions.clearAllFilters}
+              className="text-xs text-gray-500 hover:text-gray-700 underline"
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Date Range Picker */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-2">
+              Date Range Filter
+            </label>
+            <DateRangePicker
+              startDate={state.chartFilters.dateRange?.startDate}
+              endDate={state.chartFilters.dateRange?.endDate}
+              onDateRangeChange={actions.setDateRangeFilter}
+              onClear={actions.clearDateRangeFilter}
+            />
+          </div>
+
+          {/* Category Filter Panel */}
+          <div>
+            <CategoryFilterPanel
+              categories={state.categories}
+              selectedCategories={state.chartFilters.selectedCategories}
+              onToggleCategory={actions.toggleCategoryFilter}
+              onSelectAll={actions.clearAllFilters}
+              onSelectNone={() => {
+                // Select all categories to hide all
+                state.categories.forEach(cat => {
+                  if (!state.chartFilters.selectedCategories.includes(cat.id)) {
+                    actions.toggleCategoryFilter(cat.id);
+                  }
+                });
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Charts Section */}
       <div className="space-y-4">
         {/* Weekly Progress Chart */}
@@ -191,6 +261,8 @@ export function QuickStats() {
         <CategoryDistributionChart
           timeEntries={currentWeekEntries}
           categories={state.categories}
+          onCategoryClick={actions.toggleCategoryFilter}
+          selectedCategories={state.chartFilters.selectedCategories}
         />
 
         {/* Eisenhower Matrix Chart */}

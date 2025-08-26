@@ -167,7 +167,12 @@ export function Sidebar() {
 
 ## 🎯 Next Phase: UI Polish & Minor Improvements
 
-### Priority 1: Chart Filters Layout Improvement
+### Priority 1: Clean Up Weekly Time Grid back to Original State, i.e., all hourly cell should show plan/track instead of user-filled content when user clicks a button
+
+### Priority 2: User should be able to use default categories instead of creating new ones with one click
+- Default categories: defined in src/lib/models/Category.ts
+
+### Priority 3: Chart Filters Layout Improvement
 **Goal**: Improve Chart Filters panel layout for better UX
 **Status**: 🚧 **NEXT PRIORITY**
 

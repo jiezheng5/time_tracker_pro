@@ -1,4 +1,4 @@
-import { Category as ICategory, CategoryFormData, CATEGORY_COLORS } from '@/types';
+import { CATEGORY_COLORS, CategoryFormData, Category as ICategory } from '@/types';
 import { generateId } from '../utils';
 
 /**
@@ -36,13 +36,14 @@ export class Category implements ICategory {
    */
   static createDefaults(): Category[] {
     const defaultCategories = [
-      { name: 'Work/Coding', color: CATEGORY_COLORS[0] },
-      { name: 'Learning/Study', color: CATEGORY_COLORS[1] },
-      { name: 'Exercise/Health', color: CATEGORY_COLORS[2] },
+      { name: 'Exercise', color: CATEGORY_COLORS[2] },
       { name: 'Family/Social', color: CATEGORY_COLORS[3] },
-      { name: 'Rest/Entertainment', color: CATEGORY_COLORS[4] },
-      { name: 'Meals', color: CATEGORY_COLORS[5] },
-      { name: 'Commute/Travel', color: CATEGORY_COLORS[6] },
+      { name: 'Fun', color: CATEGORY_COLORS[4] },
+      { name: 'Reading', color: CATEGORY_COLORS[6] },
+      { name: 'Study/Job', color: CATEGORY_COLORS[1] },
+      { name: 'Study/NonJob', color: CATEGORY_COLORS[2] },
+      { name: 'Work/Coding', color: CATEGORY_COLORS[0] },
+      { name: 'Work/NonCoding', color: CATEGORY_COLORS[5] },
     ];
 
     return defaultCategories.map(cat => new Category(cat));

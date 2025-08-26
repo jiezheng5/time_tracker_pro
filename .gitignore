@@ -4,12 +4,7 @@
 .vscode/
 .idea/
 
-#docs/
-docs/
-doc/
-DOCS/
-DOC/
-*.md
+
 *.mdx
 *.mdown
 *.markdown

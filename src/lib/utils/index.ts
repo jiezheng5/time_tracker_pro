@@ -250,6 +250,7 @@ export function createWeekTimeSlots(
     }
 
     return {
+      dateObj: date,
       date: dateString,
       dayName: getDayName(date),
       timeSlots,

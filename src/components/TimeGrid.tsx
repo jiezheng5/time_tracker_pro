@@ -72,15 +72,15 @@ export function TimeGrid() {
             {weekData.map((day) => (
               <div
                 key={day.date}
-                className={`p-3 text-center border-r border-gray-200 last:border-r-0 ${isToday(new Date(day.date)) ? 'bg-primary-50' : 'bg-gray-50'
+                className={`p-3 text-center border-r border-gray-200 last:border-r-0 ${isToday(day.dateObj) ? 'bg-primary-50' : 'bg-gray-50'
                   }`}
               >
                 <div className="text-sm font-medium text-gray-900">
                   {day.dayName}
                 </div>
-                <div className={`text-xs mt-1 ${isToday(new Date(day.date)) ? 'text-primary-600' : 'text-gray-500'
+                <div className={`text-xs mt-1 ${isToday(day.dateObj) ? 'text-primary-600' : 'text-gray-500'
                   }`}>
-                  {new Date(day.date).getDate()}
+                  {day.dateObj.getDate()}
                 </div>
               </div>
             ))}
@@ -106,7 +106,7 @@ export function TimeGrid() {
                     onClick={() => handleSlotClick(day.date, hour)}
                     onPlanClick={() => handlePlanSlotClick(day.date, hour)}
                     onClearCell={() => handleClearCell(day.date, hour)}
-                    isToday={isToday(new Date(day.date))}
+                    isToday={isToday(day.dateObj)}
                     showPlanSection={true}
                   />
                 );

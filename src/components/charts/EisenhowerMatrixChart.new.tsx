@@ -134,7 +134,7 @@ export function EisenhowerMatrixChart({
   };
 
   const exportDataAsCSV = () => {
-    if (!chartData?.labels) return;
+    if (!chartData) return;
 
     type ChartRowData = {
       Quadrant: string;

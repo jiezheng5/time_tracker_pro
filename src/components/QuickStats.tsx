@@ -7,12 +7,14 @@ import { Calendar, Clock, Target, TrendingUp } from 'lucide-react';
 import { useMemo } from 'react';
 import { CategoryDistributionChart } from './charts/CategoryDistributionChart';
 import { EisenhowerMatrixChart } from './charts/EisenhowerMatrixChart';
-import { WeeklyProgressChart } from './charts/WeeklyProgressChart';
+import WeeklyProgressChart from './charts/WeeklyProgressChart';
 import { CategoryFilterPanel } from './ui/CategoryFilterPanel';
 import { DateRangePicker } from './ui/DateRangePicker';
+import { useResizablePanel } from './ui/ResizablePanel';
 
 export function QuickStats() {
   const { state, actions } = useTimeTracking();
+  const panelWidth = useResizablePanel('sidebar-width', 320);
 
   // Get current week entries for charts with filtering
   const currentWeekEntries = useMemo(() => {
@@ -255,6 +257,7 @@ export function QuickStats() {
         <WeeklyProgressChart
           timeEntries={currentWeekEntries}
           currentWeek={state.currentWeek}
+          containerWidth={panelWidth}
         />
 
         {/* Category Distribution Chart */}
@@ -263,11 +266,13 @@ export function QuickStats() {
           categories={state.categories}
           onCategoryClick={actions.toggleCategoryFilter}
           selectedCategories={state.chartFilters.selectedCategories}
+          containerWidth={panelWidth}
         />
 
         {/* Eisenhower Matrix Chart */}
         <EisenhowerMatrixChart
           timeEntries={currentWeekEntries}
+          containerWidth={panelWidth}
         />
       </div>
     </div>

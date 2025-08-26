@@ -4,7 +4,7 @@
 
 import { CategoryDistributionChart } from '@/components/charts/CategoryDistributionChart';
 import { EisenhowerMatrixChart } from '@/components/charts/EisenhowerMatrixChart';
-import { WeeklyProgressChart } from '@/components/charts/WeeklyProgressChart';
+import WeeklyProgressChart from '@/components/charts/WeeklyProgressChart';
 import { Category, TimeEntry } from '@/types';
 import { render } from '@testing-library/react';
 

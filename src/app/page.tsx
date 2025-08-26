@@ -1,11 +1,12 @@
 'use client';
 
-import { useTimeTracking } from '@/stores/TimeTrackingContext';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TimeGrid } from '@/components/TimeGrid';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ResizablePanel } from '@/components/ui/ResizablePanel';
+import { useTimeTracking } from '@/stores/TimeTrackingContext';
 
 export default function HomePage() {
   const { state } = useTimeTracking();
@@ -29,11 +30,18 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
-      <div className="flex">
-        <Sidebar />
-        
-        <main className="flex-1 p-6">
+
+      <div className="flex h-[calc(100vh-73px)]">
+        <ResizablePanel
+          defaultWidth={320}
+          minWidth={250}
+          maxWidth={600}
+          storageKey="sidebar-width"
+        >
+          <Sidebar />
+        </ResizablePanel>
+
+        <main className="flex-1 p-6 overflow-auto">
           <div className="max-w-7xl mx-auto">
             <TimeGrid />
           </div>

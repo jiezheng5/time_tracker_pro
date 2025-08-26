@@ -21,6 +21,7 @@ interface CategoryDistributionChartProps {
   className?: string;
   onCategoryClick?: (categoryId: string) => void;
   selectedCategories?: string[]; // For highlighting selected categories
+  containerWidth?: number; // For responsive sizing
 }
 
 export function CategoryDistributionChart({
@@ -28,6 +29,7 @@ export function CategoryDistributionChart({
   categories,
   className = '',
   onCategoryClick,
+  containerWidth = 320,
   selectedCategories = []
 }: CategoryDistributionChartProps) {
   const chartRef = useRef<ChartJS<'pie'>>(null);
@@ -76,9 +78,12 @@ export function CategoryDistributionChart({
     };
   }, [timeEntries, categories, selectedCategories]);
 
-  const options: ChartOptions<'pie'> = {
+  const options: ChartOptions<'pie'> = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      duration: containerWidth < 300 ? 0 : 750, // Faster animation for smaller widths
+    },
     onClick: (event, elements) => {
       if (elements.length > 0 && onCategoryClick && chartData) {
         const elementIndex = elements[0].index;
@@ -90,13 +95,17 @@ export function CategoryDistributionChart({
     plugins: {
       legend: {
         position: 'bottom',
+        align: 'center' as const,
         labels: {
-          padding: 20,
+          padding: containerWidth < 350 ? 12 : 20,
           usePointStyle: true,
           font: {
-            size: 12,
+            size: containerWidth < 350 ? 11 : 12,
+            family: 'system-ui',
           },
+          boxWidth: containerWidth < 350 ? 30 : 40,
         },
+        maxWidth: containerWidth - 40, // Account for padding
       },
       tooltip: {
         callbacks: {
@@ -108,9 +117,13 @@ export function CategoryDistributionChart({
             return `${label}: ${value}h (${percentage}%) - Click to filter`;
           },
         },
+        padding: containerWidth < 350 ? 8 : 12,
+        bodyFont: {
+          size: containerWidth < 350 ? 11 : 13,
+        },
       },
     },
-  };
+  }), [containerWidth, onCategoryClick, chartData]);
 
   if (!chartData) {
     return (
@@ -203,7 +216,12 @@ export function CategoryDistributionChart({
           )}
         </div>
       </div>
-      <div className="h-64">
+      <div
+        className="transition-all duration-300"
+        style={{
+          height: containerWidth < 300 ? '200px' : containerWidth < 400 ? '240px' : '280px'
+        }}
+      >
         <Pie ref={chartRef} data={chartData} options={options} />
       </div>
     </div>

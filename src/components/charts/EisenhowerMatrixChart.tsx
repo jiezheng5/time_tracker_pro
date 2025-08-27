@@ -215,7 +215,7 @@ export function EisenhowerMatrixChart({
               onClick={exportDataAsCSV}
               title="Export data as CSV"
             >
-              <Download className={cn("w-4 h-4", containerWidth < 350 && "w-3.5 h-3.5")} />
+              CSV
             </button>
           </div>
         </div>

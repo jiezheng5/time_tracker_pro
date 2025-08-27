@@ -183,7 +183,8 @@ describe('Chart Visualization Improvements', () => {
       );
 
       // Check for export buttons
-      expect(screen.getAllByTestId('download-icon').length).toBeGreaterThan(0);
+      expect(screen.getByTitle('Export chart as PNG')).toBeInTheDocument();
+      expect(screen.getByText('CSV')).toBeInTheDocument();
     });
 
     test('handles empty data gracefully', () => {

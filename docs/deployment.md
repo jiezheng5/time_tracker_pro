@@ -27,6 +27,43 @@ npm run dev
 
 The application will be available at `http://localhost:3000`
 
+
+## AWS deployment
+Excellent! Your AWS deployment was successful!
+
+✅ Deployment Summary
+http://time-tracking-app-websitebucket75c24d94-guqd9niylr1j.s3-website-us-west-2.amazonaws.com
+
+📊 Deployment Details
+Region: us-west-2
+Stack Name: time-tracking-app
+S3 Bucket: time-tracking-app-websitebucket75c24d94-guqd9niylr1j
+Deployment Time: ~1.7 minutes
+Status: ✅ Complete
+
+🔧 What Was Deployed
+S3 Static Website Hosting: Your app files are hosted on AWS S3
+CloudFormation Stack: Infrastructure managed as code
+Automatic File Upload: All your built files were uploaded automatically
+
+🚀 Next Steps
+Test Your App: Click the URL above to test your live application
+Check Status: Run  `./scripts/aws-status.sh` anytime to check deployment status
+Future Updates: Simply run  `./scripts/aws-deploy.sh` again to deploy changes
+Local Development: Continue using `npm run dev` for local development
+
+💡 Important Notes
+HTTP Only: The current setup uses HTTP. For HTTPS, you can add CloudFront later
+Cost: This setup costs approximately $1-5/month for typical usage
+Updates: Any time you make changes locally, just run the deployment script again
+
+🧹 Cleanup (if needed)
+If you ever want to remove the AWS resources:
+`aws cloudformation delete-stack --stack-name time-tracking-app`
+Congratulations! Your Time Tracking App MVP is now successfully deployed to AWS and accessible worldwide! 🌍
+
+
+
 ## ✅ Latest Deployment Status (Phase 4 Complete)
 
 ### Chart Visualization Improvements - DEPLOYED ✅
@@ -56,8 +93,8 @@ npm run deploy:local
 # Docker deployment
 npm run deploy:docker
 
-# AWS deployment
-npm run deploy:aws
+# AWS MVP deployment (S3 static hosting)
+./scripts/aws-deploy.sh
 ```
 
 ### Available Scripts
@@ -183,7 +220,31 @@ docker build -t time-tracker .
 docker run -p 3000:3000 time-tracker
 ```
 
-### 5. Static Export (GitHub Pages, etc.)
+### 5. AWS S3 Static Hosting (MVP)
+
+For simple, cost-effective cloud hosting:
+
+```bash
+# Prerequisites: AWS CLI configured with credentials
+aws configure
+
+# Deploy to AWS S3 (includes build and infrastructure setup)
+./scripts/aws-deploy.sh
+
+# Check deployment status
+./scripts/aws-status.sh
+```
+
+**Features:**
+- Automatic infrastructure setup via AWS CDK
+- S3 static website hosting
+- CloudFormation stack management
+- Cost-effective (~$1-5/month)
+- HTTP access (HTTPS can be added later)
+
+**See detailed guide:** [AWS Deployment Guide](./aws-deployment-guide.md)
+
+### 6. Static Export (GitHub Pages, etc.)
 
 For static hosting platforms:
 
@@ -318,15 +379,23 @@ npm run lint --fix
 
 ## Support & Documentation
 
-### Resources
+### Project Documentation
+- **[AWS Deployment Guide](./aws-deployment-guide.md)** - Complete AWS deployment instructions
+- **[Deployment Lessons Learned](./deployment-lessons-learned.md)** - Critical insights and troubleshooting
+- **[AWS Troubleshooting Guide](./aws-troubleshooting.md)** - Common issues and solutions
+
+### External Resources
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Vercel Deployment Guide](https://vercel.com/docs)
+- [AWS CDK Documentation](https://docs.aws.amazon.com/cdk/)
 - [React Documentation](https://react.dev)
 
 ### Getting Help
-- Check GitHub issues
-- Review deployment platform documentation
-- Contact development team
+1. **Check our documentation first**: Start with the lessons learned document
+2. **Review deployment logs**: Use `./scripts/aws-status.sh` for AWS deployments
+3. **Verify prerequisites**: Run `./scripts/aws-prereqs.sh` for AWS
+4. **Check GitHub issues**: Look for similar problems
+5. **Contact development team**: If all else fails
 
 ---
 

@@ -14,7 +14,12 @@
     "test:coverage": "jest --coverage",
     "deploy:local": "./scripts/deploy-local.sh",
     "deploy:docker": "./scripts/deploy-docker.sh",
-    "deploy:aws": "./scripts/deploy-aws.sh"
+    "deploy:aws": "./scripts/aws-deploy.sh",
+    "deploy:aws:status": "./scripts/aws-status.sh",
+    "deploy:aws:prereqs": "./scripts/aws-prereqs.sh",
+    "clean:build": "./scripts/clean-build-dirs.sh",
+    "fix:next": "./scripts/fix-next-dir.sh",
+    "force:clean:next": "./scripts/force-clean-next.sh"
   },
   "keywords": [],
   "author": "",

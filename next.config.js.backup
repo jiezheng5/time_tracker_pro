@@ -1,0 +1,14 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  typedRoutes: true,
+  eslint: {
+    dirs: ['src'],
+    ignoreDuringBuilds: true, // 忽略构建过程中的 ESLint 错误
+  },
+  typescript: {
+    ignoreBuildErrors: true, // 忽略构建过程中的 TypeScript 错误
+  },
+  output: 'standalone',
+}
+
+module.exports = nextConfig

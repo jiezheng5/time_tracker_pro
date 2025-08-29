@@ -1,4 +1,4 @@
 # This file ensures scripts/ folder is tracked locally but not pushed to remote
-*
-!*/
+# *
+# !*/
 !.gitignore

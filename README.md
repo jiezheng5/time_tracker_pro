@@ -1,138 +1,59 @@
-# Time Tracking App
+# TimeTrack Pro: 智能时间管理与生产力优化工具
 
-基于艾森豪威尔矩阵的时间管理应用，帮助用户更有效地规划和跟踪任务。
+[![AWS Deployment](https://img.shields.io/badge/AWS-Deployed-orange)](https://aws.amazon.com)
+[![Next.js](https://img.shields.io/badge/Next.js-Framework-blue)](https://nextjs.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 功能特点
+## 📊 智能时间追踪与生产力分析
 
-- 任务优先级管理（重要/紧急矩阵）
-- 时间跟踪和统计
-- 可视化报表和分析
-- 响应式设计，支持移动端和桌面端
-- AWS 云部署支持
+TimeTrack Pro 是一款强大的时间管理应用，结合艾森豪威尔矩阵原理，帮助您优化工作流程，最大化生产力。通过直观的统计视图和数据分析，让您的时间管理更加高效。
 
-## 快速开始
+### ✨ 核心功能
 
-### 一键安装部署
+- **时间追踪**：精确记录每日活动时间，自动分类并生成详细报告
+- **艾森豪威尔矩阵**：基于紧急性和重要性对任务进行四象限分类，帮助做出明智的优先级决策
+- **统计分析**：直观图表展示时间分配模式，识别生产力高峰与低谷
+- **生产力优化**：智能建议帮助改进时间管理策略，提高工作效率
+- **跨平台支持**：响应式设计，在任何设备上无缝使用
 
-使用我们的一键安装部署脚本，自动处理依赖安装和应用部署：
+### 🚀 技术特点
+
+- 基于 Next.js 构建的现代化 Web 应用
+- AWS S3 静态托管，快速可靠
+- 本地优先的数据存储，保护隐私
+- 简洁直观的用户界面，无需复杂设置
+
+### 🔍 为什么选择 TimeTrack Pro？
+
+TimeTrack Pro 不仅仅是一个时间记录工具，它是一个完整的生产力系统。通过艾森豪威尔矩阵的科学方法，帮助您专注于真正重要的任务，减少时间浪费，实现工作与生活的平衡。
+
+### 🛠️ 快速开始
 
 ```bash
-npm run setup
-```
+# 克隆仓库
+git clone https://github.com/yourusername/time-track-app.git
 
-此脚本将：
-1. 检查系统依赖
-2. 安装 npm 依赖
-3. 提供多种部署选项（AWS/本地/Docker）
-
-### 手动安装
-
-```bash
 # 安装依赖
+cd time-track-app
 npm install
 
-# 开发模式运行
+# 启动开发服务器
 npm run dev
-
-# 构建生产版本
-npm run build
-
-# 运行生产版本
-npm run start
 ```
 
-## AWS 部署
+### 📱 部署选项
 
-详细的 AWS 部署说明请参阅 [AWS-DEPLOY.md](./AWS-DEPLOY.md)。
+- **本地部署**：`npm run build && npm start`
+- **AWS 部署**：`./scripts/aws-deploy.sh`
+- **Git 部署**：`./scripts/git-deploy.sh`
 
-### 部署选项
+### 📈 谁适合使用？
 
-1. **增强版部署**（推荐）：
-   ```bash
-   npm run deploy:aws:enhanced
-   ```
-   此脚本会自动处理以下步骤：
-   - 安装依赖
-   - 构建应用
-   - 部署到 AWS
-   - 创建 CloudFront 缓存失效
+- 专业人士寻求提高工作效率
+- 自由职业者需要追踪项目时间
+- 学生优化学习时间分配
+- 任何希望更有效管理时间的人
 
-2. **基本部署**：
-   ```bash
-   npm run deploy:aws
-   ```
+---
 
-3. **检查部署状态**：
-   ```bash
-   npm run deploy:aws:status
-   ```
-
-4. **查看部署输出**（包括应用 URL）：
-   ```bash
-   npm run deploy:aws:outputs
-   ```
-
-### 常见问题
-
-如果在部署过程中遇到问题，请参阅 [AWS 故障排除指南](./docs/aws-troubleshooting.md)。
-
-### 快速部署到 AWS
-
-```bash
-npm run deploy:aws:enhanced
-```
-
-### 查看部署状态
-
-```bash
-npm run deploy:aws:status
-```
-
-## 常见问题解决
-
-### npm 依赖问题
-
-如果遇到 npm 依赖安装问题，可以使用以下命令修复：
-
-```bash
-# 修复 npm 依赖问题
-npm run fix:deps
-
-# 如果问题仍然存在，使用强制清理（需要 sudo 权限）
-npm run force:clean
-```
-
-## 开发指南
-
-### 可用脚本
-
-- `npm run dev` - 开发模式运行
-- `npm run build` - 构建生产版本
-- `npm run start` - 运行生产版本
-- `npm run lint` - 代码风格检查
-- `npm run type-check` - TypeScript 类型检查
-- `npm run test` - 运行测试
-- `npm run test:watch` - 监视模式运行测试
-- `npm run test:coverage` - 生成测试覆盖率报告
-- `npm run deploy:local` - 本地部署
-- `npm run deploy:docker` - Docker 部署
-- `npm run deploy:aws` - 标准 AWS 部署
-- `npm run deploy:aws:enhanced` - 增强版 AWS 部署（推荐）
-- `npm run deploy:aws:status` - 查看 AWS 部署状态
-- `npm run deploy:aws:outputs` - 查看 AWS 部署输出
-- `npm run fix:deps` - 修复 npm 依赖问题
-- `npm run force:clean` - 强制清理 npm 依赖（需要 sudo 权限）
-- `npm run setup` - 一键安装部署
-
-## 技术栈
-
-- **前端框架**: Next.js
-- **UI 库**: React
-- **样式**: Tailwind CSS
-- **图表**: Chart.js
-- **类型检查**: TypeScript
-- **部署**: AWS CDK
-
-## 许可证
-
-ISC
+**关键词**: 时间追踪, 生产力工具, 艾森豪威尔矩阵, 时间管理, 任务优先级, 数据分析, 效率提升, 工作流优化

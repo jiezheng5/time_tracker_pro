@@ -1,5 +1,8 @@
 'use client';
 
+import { BatchTimeEntryModal } from '@/components/BatchTimeEntryModal';
+import { BatchPlannedEntryModal } from '@/components/BatchPlannedEntryModal';
+import { Button } from '@/components/ui/Button';
 import { PlannedEntryModal } from '@/components/PlannedEntryModal';
 import { TimeEntryModal } from '@/components/TimeEntryModal';
 import { TimeSlot } from '@/components/TimeSlot';
@@ -12,6 +15,9 @@ export function TimeGrid() {
   const { state, actions } = useTimeTracking();
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; hour: number } | null>(null);
   const [selectedPlanSlot, setSelectedPlanSlot] = useState<{ date: string; hour: number } | null>(null);
+  const [multiSelectedSlots, setMultiSelectedSlots] = useState<Set<string>>(new Set());
+  const [isBatchPlanModalOpen, setIsBatchPlanModalOpen] = useState(false);
+  const [isBatchTrackModalOpen, setIsBatchTrackModalOpen] = useState(false);
 
   // Get current week data
   const weekDays = getWeekDays(state.currentWeek);
@@ -20,12 +26,44 @@ export function TimeGrid() {
   // Generate hour labels
   const hours = Array.from({ length: WORK_HOURS.TOTAL }, (_, i) => WORK_HOURS.START + i);
 
-  const handleSlotClick = (date: string, hour: number) => {
-    setSelectedSlot({ date, hour });
+  const getSlotKey = (date: string, hour: number) => `${date}_${hour}`;
+
+  const handleSlotClick = (date: string, hour: number, event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.metaKey || event.ctrlKey) {
+      event.preventDefault();
+      const key = getSlotKey(date, hour);
+      const newSelection = new Set(multiSelectedSlots);
+      if (newSelection.has(key)) {
+        newSelection.delete(key);
+      } else {
+        newSelection.add(key);
+      }
+      setMultiSelectedSlots(newSelection);
+      setSelectedSlot(null);
+      setSelectedPlanSlot(null);
+    } else {
+      setSelectedSlot({ date, hour });
+      setMultiSelectedSlots(new Set());
+    }
   };
 
-  const handlePlanSlotClick = (date: string, hour: number) => {
-    setSelectedPlanSlot({ date, hour });
+  const handlePlanSlotClick = (date: string, hour: number, event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.metaKey || event.ctrlKey) {
+      event.preventDefault();
+      const key = getSlotKey(date, hour);
+      const newSelection = new Set(multiSelectedSlots);
+      if (newSelection.has(key)) {
+        newSelection.delete(key);
+      } else {
+        newSelection.add(key);
+      }
+      setMultiSelectedSlots(newSelection);
+      setSelectedSlot(null);
+      setSelectedPlanSlot(null);
+    } else {
+      setSelectedPlanSlot({ date, hour });
+      setMultiSelectedSlots(new Set());
+    }
   };
 
   const handleClearCell = async (date: string, hour: number) => {
@@ -99,15 +137,17 @@ export function TimeGrid() {
               {/* Time slots for each day */}
               {weekData.map((day) => {
                 const timeSlot = day.timeSlots.find(slot => slot.hour === hour);
+                const slotKey = getSlotKey(day.date, hour);
                 return (
                   <TimeSlot
-                    key={`${day.date}-${hour}`}
+                    key={slotKey}
                     timeSlot={timeSlot!}
-                    onClick={() => handleSlotClick(day.date, hour)}
-                    onPlanClick={() => handlePlanSlotClick(day.date, hour)}
+                    onClick={(e) => handleSlotClick(day.date, hour, e)}
+                    onPlanClick={(e) => handlePlanSlotClick(day.date, hour, e)}
                     onClearCell={() => handleClearCell(day.date, hour)}
                     isToday={isToday(day.dateObj)}
                     showPlanSection={true}
+                    isSelected={multiSelectedSlots.has(slotKey)}
                   />
                 );
               })}
@@ -115,6 +155,24 @@ export function TimeGrid() {
           ))}
         </div>
       </div>
+
+      {/* Batch Action Bar */}
+      {multiSelectedSlots.size > 1 && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-white shadow-lg rounded-lg p-3 flex items-center gap-4 z-50 border border-gray-200">
+          <span className="text-sm font-medium text-gray-800">
+            {multiSelectedSlots.size} slots selected
+          </span>
+          <Button onClick={() => setIsBatchPlanModalOpen(true)}>
+            Plan for Selected
+          </Button>
+          <Button onClick={() => setIsBatchTrackModalOpen(true)} variant="outline">
+            Track for Selected
+          </Button>
+          <Button variant="secondary" onClick={() => setMultiSelectedSlots(new Set())}>
+            Clear Selection
+          </Button>
+        </div>
+      )}
 
       {/* Time Entry Modal */}
       {selectedSlot && (
@@ -131,6 +189,34 @@ export function TimeGrid() {
           date={selectedPlanSlot.date}
           hour={selectedPlanSlot.hour}
           onClose={handleClosePlanModal}
+        />
+      )}
+
+      {/* Batch Plan Modal */}
+      {isBatchPlanModalOpen && (
+        <BatchPlannedEntryModal
+          selectedSlots={Array.from(multiSelectedSlots).map(key => {
+            const [date, hour] = key.split('_');
+            return { date, hour: parseInt(hour, 10) };
+          })}
+          onClose={() => {
+            setIsBatchPlanModalOpen(false);
+            setMultiSelectedSlots(new Set());
+          }}
+        />
+      )}
+
+      {/* Batch Track Modal */}
+      {isBatchTrackModalOpen && (
+        <BatchTimeEntryModal
+          selectedSlots={Array.from(multiSelectedSlots).map(key => {
+            const [date, hour] = key.split('_');
+            return { date, hour: parseInt(hour, 10) };
+          })}
+          onClose={() => {
+            setIsBatchTrackModalOpen(false);
+            setMultiSelectedSlots(new Set());
+          }}
         />
       )}
     </div>

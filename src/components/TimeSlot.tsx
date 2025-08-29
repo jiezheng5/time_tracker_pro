@@ -19,11 +19,12 @@ function getContrastColor(backgroundColor: string): string {
 
 interface TimeSlotProps {
   timeSlot: TimeSlotData;
-  onClick: () => void;
-  onPlanClick?: () => void;
+  onClick: (event: React.MouseEvent) => void;
+  onPlanClick?: (event: React.MouseEvent) => void;
   onClearCell?: () => void;
   isToday?: boolean;
   showPlanSection?: boolean; // Toggle for showing plan vs execute sections
+  isSelected: boolean;
 }
 
 export function TimeSlot({
@@ -32,7 +33,8 @@ export function TimeSlot({
   onPlanClick,
   onClearCell,
   isToday = false,
-  showPlanSection = true
+  showPlanSection = true,
+  isSelected,
 }: TimeSlotProps) {
   const { actualEntry, actualCategory, plannedEntry, plannedCategory } = timeSlot;
   const hasActualEntry = !!actualEntry;
@@ -77,13 +79,14 @@ export function TimeSlot({
         className={cn(
           'time-slot border-r border-gray-200 last:border-r-0 relative cursor-pointer transition-all duration-200',
           hasActualEntry ? 'filled' : '',
-          isToday ? 'border-primary-200' : ''
+          isToday ? 'border-primary-200' : '',
+          isSelected ? 'ring-2 ring-blue-500 ring-inset z-10' : ''
         )}
         style={{
           backgroundColor: hasActualEntry && actualCategory ? actualCategory.color : undefined,
           color: hasActualEntry && actualCategory ? getContrastColor(actualCategory.color) : undefined,
         }}
-        onClick={onClick}
+        onClick={e => onClick(e)}
       >
         <div className="p-2 h-full min-h-[60px] flex flex-col justify-between">
           {hasActualEntry && actualCategory && (
@@ -136,7 +139,8 @@ export function TimeSlot({
         executionStatus === 'completed' && 'ring-2 ring-green-300',
         executionStatus === 'different' && 'ring-2 ring-yellow-300',
         executionStatus === 'missed' && 'ring-2 ring-red-300',
-        executionStatus === 'unplanned' && 'ring-2 ring-blue-300'
+        executionStatus === 'unplanned' && 'ring-2 ring-blue-300',
+        isSelected ? 'ring-2 ring-blue-500 ring-inset z-10' : ''
       )}
     >
       <div className="flex h-full min-h-[60px] overflow-hidden">
@@ -151,7 +155,7 @@ export function TimeSlot({
               ? `${plannedCategory.color}20` // 20% opacity
               : undefined,
           }}
-          onClick={onPlanClick}
+          onClick={e => onPlanClick?.(e)}
         >
           <div className="p-1 h-full flex flex-col justify-between overflow-hidden">
             {hasPlannedEntry && plannedCategory ? (
@@ -194,7 +198,7 @@ export function TimeSlot({
             backgroundColor: hasActualEntry && actualCategory ? actualCategory.color : undefined,
             color: hasActualEntry && actualCategory ? getContrastColor(actualCategory.color) : undefined,
           }}
-          onClick={onClick}
+          onClick={e => onClick(e)}
         >
           <div className="p-1 h-full flex flex-col justify-between overflow-hidden">
             {hasActualEntry && actualCategory ? (

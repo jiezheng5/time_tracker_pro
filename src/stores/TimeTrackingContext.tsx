@@ -27,10 +27,12 @@ type TimeTrackingAction =
   | { type: 'UPDATE_CATEGORY'; payload: Category }
   | { type: 'DELETE_CATEGORY'; payload: string }
   | { type: 'UPSERT_TIME_ENTRY'; payload: TimeEntry }
+  | { type: 'BATCH_UPSERT_TIME_ENTRIES'; payload: TimeEntry[] }
   | { type: 'DELETE_TIME_ENTRY'; payload: { date: string; hour: number } }
   | { type: 'SET_PLANNED_ENTRIES'; payload: PlannedEntry[] }
   | { type: 'UPSERT_PLANNED_ENTRY'; payload: PlannedEntry }
   | { type: 'DELETE_PLANNED_ENTRY'; payload: string }
+  | { type: 'BATCH_ADD_PLANNED_ENTRIES'; payload: PlannedEntry[] }
   | { type: 'SET_CURRENT_WEEK'; payload: Date }
   | { type: 'CLEAR_WEEK_DATA'; payload: Date }
   | { type: 'CLEAR_CELL_DATA'; payload: { date: string; hour: number } }
@@ -54,11 +56,19 @@ interface TimeTrackingContextType {
     // Time entry actions
     upsertTimeEntry: (date: string, hour: number, formData: TimeEntryFormData) => Promise<void>;
     deleteTimeEntry: (date: string, hour: number) => Promise<void>;
+    batchUpsertTimeEntries: (
+      slots: { date: string; hour: number }[],
+      formData: TimeEntryFormData
+    ) => Promise<void>;
 
     // Planned entry actions
     createPlannedEntry: (date: string, hour: number, formData: PlannedEntryFormData) => Promise<void>;
     updatePlannedEntry: (id: string, formData: PlannedEntryFormData) => Promise<void>;
     deletePlannedEntry: (id: string) => Promise<void>;
+    batchCreatePlannedEntries: (
+      slots: { date: string; hour: number }[],
+      formData: PlannedEntryFormData
+    ) => Promise<void>;
 
     // Navigation actions
     setCurrentWeek: (date: Date) => void;
@@ -151,6 +161,23 @@ function timeTrackingReducer(state: TimeTrackingState, action: TimeTrackingActio
         };
       }
 
+    case 'BATCH_UPSERT_TIME_ENTRIES':
+      const updatedTimeEntries = [...state.timeEntries];
+      action.payload.forEach(newEntry => {
+        const index = updatedTimeEntries.findIndex(
+          e => e.date === newEntry.date && e.hour === newEntry.hour
+        );
+        if (index >= 0) {
+          updatedTimeEntries[index] = newEntry;
+        } else {
+          updatedTimeEntries.push(newEntry);
+        }
+      });
+      return {
+        ...state,
+        timeEntries: updatedTimeEntries,
+      };
+
     case 'DELETE_TIME_ENTRY':
       return {
         ...state,
@@ -185,6 +212,32 @@ function timeTrackingReducer(state: TimeTrackingState, action: TimeTrackingActio
         ...state,
         plannedEntries: state.plannedEntries.filter(entry => entry.id !== action.payload),
       };
+
+    case 'BATCH_ADD_PLANNED_ENTRIES':
+      // Create a copy of the current planned entries
+      const updatedPlannedEntries = [...state.plannedEntries];
+
+      // Loop through the new entries from the payload
+      action.payload.forEach(newEntry => {
+        // Find if an entry for this slot already exists
+        const existingIndex = updatedPlannedEntries.findIndex(
+          e => e.date === newEntry.date && e.hour === newEntry.hour
+        );
+
+        if (existingIndex >= 0) {
+          // If it exists, update it
+          updatedPlannedEntries[existingIndex] = newEntry;
+        } else {
+          // If it doesn't exist, add it
+          updatedPlannedEntries.push(newEntry);
+        }
+      });
+
+      return {
+        ...state,
+        plannedEntries: updatedPlannedEntries,
+      };
+
 
     case 'SET_CURRENT_WEEK':
       return { ...state, currentWeek: action.payload };
@@ -384,6 +437,21 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
       }
     },
 
+    batchUpsertTimeEntries: async (
+      slots: { date: string; hour: number }[],
+      formData: TimeEntryFormData
+    ) => {
+      try {
+        const newEntriesClasses = await repository.batchUpsertTimeEntries(slots, formData);
+        const newEntries = newEntriesClasses.map(e => e.toJSON());
+        dispatch({ type: 'BATCH_UPSERT_TIME_ENTRIES', payload: newEntries });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to batch create time entries';
+        dispatch({ type: 'SET_ERROR', payload: message });
+        throw error;
+      }
+    },
+
     deleteTimeEntry: async (date: string, hour: number) => {
       try {
         await repository.deleteTimeEntry(date, hour);
@@ -425,6 +493,21 @@ export function TimeTrackingProvider({ children }: TimeTrackingProviderProps) {
         dispatch({ type: 'DELETE_PLANNED_ENTRY', payload: id });
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to delete planned entry';
+        dispatch({ type: 'SET_ERROR', payload: message });
+        throw error;
+      }
+    },
+
+    batchCreatePlannedEntries: async (
+      slots: { date: string; hour: number }[],
+      formData: PlannedEntryFormData
+    ) => {
+      try {
+        const newEntriesClasses = await repository.batchCreatePlannedEntries(slots, formData);
+        const newEntries = newEntriesClasses.map(e => e.toJSON());
+        dispatch({ type: 'BATCH_ADD_PLANNED_ENTRIES', payload: newEntries });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to batch create planned entries';
         dispatch({ type: 'SET_ERROR', payload: message });
         throw error;
       }

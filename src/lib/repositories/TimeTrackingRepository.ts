@@ -294,6 +294,68 @@ export class TimeTrackingRepository {
   }
 
   /**
+   * Batch create planned entries
+   */
+  async batchCreatePlannedEntries(
+    slots: { date: string; hour: number }[],
+    formData: PlannedEntryFormData
+  ): Promise<PlannedEntry[]> {
+    this.ensureLoaded();
+
+    const newEntries = slots.map(slot =>
+      PlannedEntry.fromFormData(slot.date, slot.hour, formData)
+    );
+
+    newEntries.forEach(newEntry => {
+      const existingIndex = this.data!.plannedEntries.findIndex(
+        entry => entry.date === newEntry.date && entry.hour === newEntry.hour
+      );
+
+      if (existingIndex >= 0) {
+        this.data!.plannedEntries[existingIndex] = newEntry.toJSON();
+      } else {
+        this.data!.plannedEntries.push(newEntry.toJSON());
+      }
+    });
+
+    await this.saveData();
+    return newEntries;
+  }
+
+  /**
+   * Batch upsert time entries
+   */
+  async batchUpsertTimeEntries(
+    slots: { date: string; hour: number }[],
+    formData: TimeEntryFormData
+  ): Promise<TimeEntry[]> {
+    this.ensureLoaded();
+
+    if (!this.data!.categories.some(cat => cat.id === formData.categoryId)) {
+      throw new Error('Selected category does not exist');
+    }
+
+    const newEntries = slots.map(slot =>
+      TimeEntry.fromFormData(slot.date, slot.hour, formData)
+    );
+
+    newEntries.forEach(newEntry => {
+      const existingIndex = this.data!.timeEntries.findIndex(
+        entry => entry.date === newEntry.date && entry.hour === newEntry.hour
+      );
+
+      if (existingIndex >= 0) {
+        this.data!.timeEntries[existingIndex] = newEntry.toJSON();
+      } else {
+        this.data!.timeEntries.push(newEntry.toJSON());
+      }
+    });
+
+    await this.saveData();
+    return newEntries;
+  }
+
+  /**
    * Clear all categories
    */
   async clearAllCategories(): Promise<void> {

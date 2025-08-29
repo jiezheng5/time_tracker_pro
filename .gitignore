@@ -16,6 +16,7 @@ doc/
 *.markdown
 *.txt
 *.csv
+*.md
 
 # Dependencies
 node_modules/

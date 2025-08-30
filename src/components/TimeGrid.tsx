@@ -1,11 +1,11 @@
 'use client';
 
-import { BatchTimeEntryModal } from '@/components/BatchTimeEntryModal';
 import { BatchPlannedEntryModal } from '@/components/BatchPlannedEntryModal';
-import { Button } from '@/components/ui/Button';
+import { BatchTimeEntryModal } from '@/components/BatchTimeEntryModal';
 import { PlannedEntryModal } from '@/components/PlannedEntryModal';
 import { TimeEntryModal } from '@/components/TimeEntryModal';
 import { TimeSlot } from '@/components/TimeSlot';
+import { Button } from '@/components/ui/Button';
 import { createWeekTimeSlots, formatHour, getWeekDays, isToday } from '@/lib/utils';
 import { useTimeTracking } from '@/stores/TimeTrackingContext';
 import { WORK_HOURS } from '@/types';
@@ -135,13 +135,13 @@ export function TimeGrid() {
         </p>
       </div>
 
-      {/* Grid Container */}
-      <div className="overflow-x-auto">
-        <div className="min-w-[800px]">
+      {/* Grid Container - Mobile Optimized */}
+      <div className="overflow-x-auto touch-pan-x">
+        <div className="min-w-[800px] md:min-w-0">
           {/* Grid Header - Days */}
           <div className="grid grid-cols-8 border-b border-gray-200">
             {/* Empty corner cell */}
-            <div className="p-3 bg-gray-50 border-r border-gray-200">
+            <div className="p-2 md:p-3 bg-gray-50 border-r border-gray-200">
               <span className="text-xs font-medium text-gray-500">Time</span>
             </div>
 
@@ -149,17 +149,20 @@ export function TimeGrid() {
             {weekData.map((day) => (
               <div
                 key={day.date}
-                className={`p-3 text-center border-r border-gray-200 last:border-r-0 ${isToday(day.dateObj) ? 'bg-primary-50' : 'bg-gray-50'
+                className={`p-2 md:p-3 text-center border-r border-gray-200 last:border-r-0 ${isToday(day.dateObj) ? 'bg-primary-50' : 'bg-gray-50'
                   }`}
               >
-                <div className="text-sm font-medium text-gray-900">
-                  {day.dayName}
+                <div className="text-xs md:text-sm font-medium text-gray-900">
+                  {/* Mobile: Show abbreviated day names */}
+                  <span className="md:hidden">{day.dayName.slice(0, 3)}</span>
+                  <span className="hidden md:inline">{day.dayName}</span>
                 </div>
                 <div className={`text-xs mt-1 ${isToday(day.dateObj) ? 'text-primary-600' : 'text-gray-500'
                   }`}>
                   {day.dateObj.getDate()}
                 </div>
-                <div className="flex justify-center gap-2 mt-1">
+                {/* Mobile: Hide batch action buttons to save space */}
+                <div className="hidden md:flex justify-center gap-2 mt-1">
                   <button
                     onClick={() => {
                       handleBatchSelectDay(day.date);
@@ -215,21 +218,39 @@ export function TimeGrid() {
         </div>
       </div>
 
-      {/* Batch Action Bar */}
+      {/* Batch Action Bar - Mobile Optimized */}
       {multiSelectedSlots.size > 1 && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-white shadow-lg rounded-lg p-3 flex items-center gap-4 z-50 border border-gray-200">
-          <span className="text-sm font-medium text-gray-800">
-            {multiSelectedSlots.size} slots selected
-          </span>
-          <Button onClick={() => setIsBatchPlanModalOpen(true)}>
-            Plan for Selected
-          </Button>
-          <Button onClick={() => setIsBatchTrackModalOpen(true)} variant="outline">
-            Track for Selected
-          </Button>
-          <Button variant="secondary" onClick={() => setMultiSelectedSlots(new Set())}>
-            Clear Selection
-          </Button>
+        <div className="fixed bottom-4 left-4 right-4 md:bottom-20 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-auto bg-white shadow-lg rounded-lg p-3 z-50 border border-gray-200">
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+            <span className="text-sm font-medium text-gray-800">
+              {multiSelectedSlots.size} slots selected
+            </span>
+            <div className="flex gap-2 w-full md:w-auto">
+              <Button
+                onClick={() => setIsBatchPlanModalOpen(true)}
+                className="flex-1 md:flex-none text-sm"
+                size="sm"
+              >
+                Plan
+              </Button>
+              <Button
+                onClick={() => setIsBatchTrackModalOpen(true)}
+                variant="secondary"
+                className="flex-1 md:flex-none text-sm"
+                size="sm"
+              >
+                Track
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setMultiSelectedSlots(new Set())}
+                className="flex-1 md:flex-none text-sm"
+                size="sm"
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 

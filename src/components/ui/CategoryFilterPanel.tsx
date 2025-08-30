@@ -67,34 +67,34 @@ export function CategoryFilterPanel({
         <div className="space-y-2 max-h-48 overflow-y-auto">
           {categories.map((category) => {
             const visible = isVisible(category.id);
-            
+
             return (
               <div
                 key={category.id}
-                className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-3 p-3 md:p-2 rounded hover:bg-gray-50 transition-colors touch-manipulation"
               >
                 <button
                   onClick={() => onToggleCategory(category.id)}
-                  className={`flex items-center justify-center w-5 h-5 rounded border-2 transition-colors ${                    visible
-                      ? 'bg-blue-50 border-blue-500 text-blue-600'
-                      : 'bg-gray-50 border-gray-300 text-gray-400'
-                  }`}
+                  className={`flex items-center justify-center w-6 h-6 md:w-5 md:h-5 rounded border-2 transition-colors min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 ${visible
+                    ? 'bg-blue-50 border-blue-500 text-blue-600'
+                    : 'bg-gray-50 border-gray-300 text-gray-400'
+                    }`}
                 >
                   {visible ? (
-                    <Eye className="w-3 h-3" />
+                    <Eye className="w-4 h-4 md:w-3 md:h-3" />
                   ) : (
-                    <EyeOff className="w-3 h-3" />
+                    <EyeOff className="w-4 h-4 md:w-3 md:h-3" />
                   )}
                 </button>
 
                 <div
-                  className="w-3 h-3 rounded-full border border-gray-300 flex-shrink-0"
+                  className="w-4 h-4 md:w-3 md:h-3 rounded-full border border-gray-300 flex-shrink-0"
                   style={{ backgroundColor: category.color }}
                 />
 
                 <span
-                  className={`text-sm flex-1 transition-colors ${                    visible ? 'text-gray-900' : 'text-gray-400'
-                  }`}
+                  className={`text-sm md:text-sm flex-1 transition-colors ${visible ? 'text-gray-900' : 'text-gray-400'
+                    }`}
                 >
                   {category.name}
                 </span>

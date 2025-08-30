@@ -193,6 +193,13 @@ interface AppData {
 - Bulk edit for similar time blocks
 - Copy previous day's schedule
 - Quick category switching
+- **Batch Selection**:
+  - **Ctrl/Cmd+click**: Select multiple, non-contiguous time slots.
+  - **Shift+click**: Select a continuous range of time slots.
+- **Batch Actions**: A floating action bar appears when multiple slots are selected, allowing users to:
+  - Batch plan selected slots with a single activity.
+  - Batch track selected slots with a single activity.
+- **Per-Day Batch Actions**: Buttons to batch plan or track an entire day with a single activity.
 
 ## 7. Performance Requirements
 

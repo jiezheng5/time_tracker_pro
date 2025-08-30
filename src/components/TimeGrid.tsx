@@ -161,14 +161,15 @@ export function TimeGrid() {
                   }`}>
                   {day.dateObj.getDate()}
                 </div>
-                {/* Mobile: Hide batch action buttons to save space */}
-                <div className="hidden md:flex justify-center gap-2 mt-1">
+                {/* Mobile-Friendly: Day-level Plan/Track buttons */}
+                <div className="flex justify-center gap-1 md:gap-2 mt-1">
                   <button
                     onClick={() => {
                       handleBatchSelectDay(day.date);
                       setIsBatchPlanModalOpen(true);
                     }}
-                    className="text-xs text-blue-500 hover:underline"
+                    className="text-xs text-blue-500 hover:underline px-1 py-0.5 min-w-[32px] min-h-[32px] flex items-center justify-center"
+                    title={`Plan activities for ${day.dayName}`}
                   >
                     Plan
                   </button>
@@ -177,7 +178,8 @@ export function TimeGrid() {
                       handleBatchSelectDay(day.date);
                       setIsBatchTrackModalOpen(true);
                     }}
-                    className="text-xs text-green-500 hover:underline"
+                    className="text-xs text-green-500 hover:underline px-1 py-0.5 min-w-[32px] min-h-[32px] flex items-center justify-center"
+                    title={`Track activities for ${day.dayName}`}
                   >
                     Track
                   </button>

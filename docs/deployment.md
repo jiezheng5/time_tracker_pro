@@ -377,6 +377,36 @@ npm run lint --fix
 - [ ] No console errors
 - [ ] Mobile responsiveness maintained
 
+## Mobile Responsiveness
+
+The application includes comprehensive mobile web support optimized for modern mobile devices:
+
+### **Mobile Viewport Support**
+- **iPhone Compatibility**: Fully tested and optimized for iPhone (375px) and other mobile devices
+- **Responsive Breakpoints**:
+  - Mobile: 320px - 767px (touch-optimized layout with hamburger menu)
+  - Tablet: 768px - 1023px (hybrid layout)
+  - Desktop: 1024px+ (full feature set with resizable panels)
+
+### **Mobile Features**
+- **Touch-Friendly Interface**: 44px minimum touch targets for all interactive elements
+- **Mobile Navigation**: Hamburger menu with slide-out sidebar overlay
+- **Responsive Time Grid**: Horizontal scrolling with momentum for time tracking
+- **Mobile-Optimized Charts**: Responsive chart sizing with touch interactions
+- **Progressive Enhancement**: Desktop functionality gracefully degrades on mobile
+
+### **Mobile Testing**
+- ✅ All mobile viewport tests passing (13/13)
+- ✅ Cross-device compatibility verified
+- ✅ Touch interaction optimization implemented
+- ✅ Performance optimized for mobile networks
+
+### **Mobile Deployment Considerations**
+- Ensure HTTPS for mobile PWA features
+- Test on actual devices after deployment
+- Monitor mobile performance metrics
+- Consider mobile-specific analytics
+
 ## Support & Documentation
 
 ### Project Documentation

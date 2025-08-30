@@ -201,7 +201,7 @@ describe('Mobile Viewport - Basic Functionality', () => {
       expect(scrollContainer).toBeInTheDocument();
     });
 
-    test('mobile time grid shows abbreviated day names', async () => {
+    test('mobile time grid shows abbreviated day names and day-level plan/track buttons', async () => {
       mockWindowWidth(375);
 
       render(
@@ -219,6 +219,12 @@ describe('Mobile Viewport - Basic Functionality', () => {
         // In real browser, the responsive classes would work correctly
         expect(screen.queryByText('Monday')).toBeInTheDocument();
         expect(screen.queryByText('Tuesday')).toBeInTheDocument();
+
+        // Should show day-level Plan/Track buttons on mobile (important for mobile UX)
+        const planButtons = screen.getAllByText('Plan');
+        const trackButtons = screen.getAllByText('Track');
+        expect(planButtons.length).toBeGreaterThan(0);
+        expect(trackButtons.length).toBeGreaterThan(0);
       });
     });
   });
